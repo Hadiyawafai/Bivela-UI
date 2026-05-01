@@ -1,144 +1,170 @@
 // =======================================================
 // src/features/shop/shop.jsx
-// FINAL SHOP PAGE (Premium Fixed Version)
+// FINAL CLEAN SHOP PAGE
 // =======================================================
 
-import React, { useEffect, useMemo, useState , useRef} from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { NavLink } from "react-router-dom";
 import ProductCard from "../../components/common/card";
 import { getAllProducts } from "./shopService";
 
 function ShopPage() {
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [products, setProducts] =
+    useState([]);
 
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("default");
+  const [filteredProducts,
+    setFilteredProducts] =
+    useState([]);
 
-  const [loading, setLoading] = useState(true);
+  const [activeFilter,
+    setActiveFilter] =
+    useState("All");
 
-  const [open, setOpen] = useState(false);
-const dropdownRef = useRef(null);
+  const [search, setSearch] =
+    useState("");
 
-useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(e.target)
-    ) {
-      setOpen(false);
-    }
-  };
+  const [sortBy, setSortBy] =
+    useState("default");
 
-  document.addEventListener("mousedown", handleClickOutside);
+  const [loading, setLoading] =
+    useState(true);
 
-  return () =>
-    document.removeEventListener(
+  const [open, setOpen] =
+    useState(false);
+
+  const dropdownRef =
+    useRef(null);
+
+  // =====================================
+  // CLOSE SORT
+  // =====================================
+  useEffect(() => {
+    const close = (e) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(
+          e.target
+        )
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener(
       "mousedown",
-      handleClickOutside
+      close
     );
-}, []);
 
-  // ===================================================
-  // FETCH PRODUCTS
-  // ===================================================
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-
-      const data = await getAllProducts();
-
-      const safeData = Array.isArray(data)
-        ? data
-        : [];
-
-      setProducts(safeData);
-      setFilteredProducts(safeData);
-    } catch (error) {
-      console.log(
-        "Product Fetch Error:",
-        error
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        close
       );
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
+
+  // =====================================
+  // FETCH PRODUCTS
+  // =====================================
+  const fetchProducts =
+    async () => {
+      try {
+        setLoading(true);
+
+        const data =
+          await getAllProducts();
+
+        const safe =
+          Array.isArray(data)
+            ? data
+            : [];
+
+        setProducts(safe);
+        setFilteredProducts(
+          safe
+        );
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // ===================================================
+  // =====================================
   // FILTER + SEARCH + SORT
-  // ===================================================
+  // =====================================
   useEffect(() => {
-    let result = [...products];
+    let result = [
+      ...products,
+    ];
 
-    // Category Filter
-    if (activeFilter !== "All") {
-      result = result.filter(
-        (item) =>
-          item.category?.name ===
-          activeFilter
-      );
+    if (
+      activeFilter !== "All"
+    ) {
+      result =
+        result.filter(
+          (item) =>
+            item.categoryName ===
+            activeFilter
+        );
     }
 
-    // Search
-    if (search.trim()) {
-      result = result.filter((item) =>
-        item.name
-          ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
+    if (
+      search.trim()
+    ) {
+      result =
+        result.filter(
+          (item) =>
+            item.name
+              ?.toLowerCase()
+              .includes(
+                search.toLowerCase()
+              )
+        );
+    }
+
+    if (
+      sortBy ===
+      "low-high"
+    ) {
+      result.sort(
+        (a, b) =>
+          Number(
+            a.basePrice
+          ) -
+          Number(
+            b.basePrice
           )
       );
     }
 
-    // Sort
-    if (sortBy === "low-high") {
+    if (
+      sortBy ===
+      "high-low"
+    ) {
       result.sort(
         (a, b) =>
-          Number(a.basePrice || 0) -
-          Number(b.basePrice || 0)
+          Number(
+            b.basePrice
+          ) -
+          Number(
+            a.basePrice
+          )
       );
     }
 
-    if (sortBy === "high-low") {
-      result.sort(
-        (a, b) =>
-          Number(b.basePrice || 0) -
-          Number(a.basePrice || 0)
-      );
-    }
-
-    if (sortBy === "rating") {
-      result.sort((a, b) => {
-        const aRating =
-          a.reviews?.length > 0
-            ? a.reviews.reduce(
-                (sum, r) =>
-                  sum + r.rating,
-                0
-              ) /
-              a.reviews.length
-            : 0;
-
-        const bRating =
-          b.reviews?.length > 0
-            ? b.reviews.reduce(
-                (sum, r) =>
-                  sum + r.rating,
-                0
-              ) /
-              b.reviews.length
-            : 0;
-
-        return bRating - aRating;
-      });
-    }
-
-    setFilteredProducts(result);
+    setFilteredProducts(
+      result
+    );
   }, [
     products,
     activeFilter,
@@ -146,56 +172,70 @@ useEffect(() => {
     sortBy,
   ]);
 
-  // ===================================================
-  // STATS
-  // ===================================================
+  // =====================================
   const totalProducts =
     filteredProducts.length;
 
-  const avgPrice = useMemo(() => {
-    if (!filteredProducts.length)
-      return 0;
+  const avgPrice =
+    useMemo(() => {
+      if (
+        !filteredProducts.length
+      )
+        return 0;
 
-    const total =
-      filteredProducts.reduce(
-        (sum, item) =>
-          sum +
-          Number(
-            item.basePrice || 0
-          ),
-        0
+      const total =
+        filteredProducts.reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            Number(
+              item.basePrice ||
+                0
+            ),
+          0
+        );
+
+      return Math.round(
+        total /
+          filteredProducts.length
       );
+    }, [
+      filteredProducts,
+    ]);
 
-    return Math.round(
-      total /
-        filteredProducts.length
-    );
-  }, [filteredProducts]);
-
+  // =====================================
   return (
     <div className="bg-[#F2F0EF] min-h-screen pt-32">
+
       {/* HERO */}
       <section className="max-w-7xl mx-auto px-6 pb-20">
-        <p className="text-xs uppercase tracking-[0.35em] text-black/50 mb-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/50 mb-4">
           Bivela House
         </p>
 
-        <h1 className="text-5xl md:text-7xl text-black leading-tight">
+        <h1
+          className="text-5xl md:text-7xl"
+          style={{
+            fontFamily:
+              "TanAngleton, serif",
+          }}
+        >
           The Collection
         </h1>
 
-        <p className="mt-8 max-w-2xl text-black/70 leading-8">
-          Discover heirloom shawls
-          shaped through heritage,
-          craftsmanship, and timeless
-          luxury.
+        <p className="mt-8 max-w-2xl text-[#1C2120]/70 leading-8">
+          Discover heirloom shawls shaped through heritage,
+          craftsmanship and timeless luxury.
         </p>
       </section>
 
       {/* CONTROLS */}
       <section className="max-w-7xl mx-auto px-6 pb-10">
         <div className="grid md:grid-cols-3 gap-4">
-          {/* Search */}
+
+          {/* SEARCH */}
           <input
             type="text"
             placeholder="Search Collection..."
@@ -205,104 +245,148 @@ useEffect(() => {
                 e.target.value
               )
             }
-            className="border border-black/15 px-4 py-3 bg-white text-black placeholder:text-black/40 outline-none focus:outline-none focus:ring-0 focus:border-black"
+            className="border border-[#1C2120]/15 bg-white px-4 py-3 outline-none focus:border-[#1C2120]"
           />
 
-          {/* Premium Dropdown */}
-        <div ref={dropdownRef} className="relative w-full">
-
-  {/* BUTTON */}
-  <button
-    type="button"
-    onClick={() => setOpen(!open)}
-    className="w-full flex justify-between items-center border border-black/15 bg-white text-black px-4 py-3 hover:bg-black hover:text-white transition"
-  >
-    <span>
-      {sortBy === "default" && "Sort By"}
-      {sortBy === "low-high" && "Price: Low to High"}
-      {sortBy === "high-low" && "Price: High to Low"}
-      {sortBy === "rating" && "Highest Rated"}
-    </span>
-
-    <span className="text-xs">▼</span>
-  </button>
-
-  {/* DROPDOWN */}
-  {open && (
-    <div className="absolute z-50 mt-2 w-full bg-white border border-black overflow-hidden">
-
-      {[
-        { label: "Sort By", value: "default" },
-        { label: "Price: Low to High", value: "low-high" },
-        { label: "Price: High to Low", value: "high-low" },
-        { label: "Highest Rated", value: "rating" },
-      ].map((opt) => {
-        const active = sortBy === opt.value;
-
-        return (
-          <button
-            key={opt.value}
-            onClick={() => {
-              setSortBy(opt.value);
-              setOpen(false);
-            }}
-            className={`w-full px-4 py-3 text-left text-sm transition ${
-              active
-                ? "bg-black text-white"
-                : "hover:bg-black hover:text-white"
-            }`}
+          {/* SORT */}
+          <div
+            ref={
+              dropdownRef
+            }
+            className="relative"
           >
-            {opt.label}
-          </button>
-        );
-      })}
+            <button
+              onClick={() =>
+                setOpen(
+                  !open
+                )
+              }
+              className="w-full flex justify-between items-center border border-[#1C2120]/15 bg-white px-4 py-3 hover:bg-black hover:text-white transition"
+            >
+              <span>
+                {sortBy ===
+                  "default" &&
+                  "Sort By"}
 
-    </div>
-  )}
-</div>
+                {sortBy ===
+                  "low-high" &&
+                  "Price: Low to High"}
 
-          {/* Stats */}
-          <div className="border border-black/15 bg-white px-4 py-3 text-sm flex items-center justify-between">
+                {sortBy ===
+                  "high-low" &&
+                  "Price: High to Low"}
+              </span>
+
+              <span>
+                ▼
+              </span>
+            </button>
+
+            {open && (
+              <div className="absolute mt-2 w-full bg-white border border-[#1C2120] z-50">
+                {[
+                  {
+                    label:
+                      "Sort By",
+                    value:
+                      "default",
+                  },
+                  {
+                    label:
+                      "Price: Low to High",
+                    value:
+                      "low-high",
+                  },
+                  {
+                    label:
+                      "Price: High to Low",
+                    value:
+                      "high-low",
+                  },
+                ].map(
+                  (
+                    opt
+                  ) => (
+                    <button
+                      key={
+                        opt.value
+                      }
+                      onClick={() => {
+                        setSortBy(
+                          opt.value
+                        );
+                        setOpen(
+                          false
+                        );
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-[#1C2120] hover:text-white"
+                    >
+                      {
+                        opt.label
+                      }
+                    </button>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* STATS */}
+          <div className="border border-black/15 bg-white px-4 py-3 flex justify-between ">
             <span>
-              {totalProducts} Items
+              {
+                totalProducts
+              }{" "}
+              Items
             </span>
 
             <span>
-              Avg ₹{avgPrice}
+              Avg ₹
+              {avgPrice}
             </span>
           </div>
         </div>
       </section>
 
-      {/* CATEGORY FILTER */}
+      {/* FILTER */}
       <section className="max-w-7xl mx-auto px-6 pb-16">
-        <div className="flex flex-wrap gap-4 border-y border-black/10 py-6">
+        <div className="flex gap-4 flex-wrap border-y border-[#1C2120]/10 py-6">
           {[
             "All",
             "Shawls",
             "Scarves",
-          ].map((item) => (
-            <button
-              key={item}
-              onClick={() =>
-                setActiveFilter(item)
-              }
-              className={`px-5 py-3 text-xs uppercase tracking-[0.30em] border transition ${
-                activeFilter === item
-                  ? "bg-black text-white border-black"
-                  : "bg-white border-black/10 hover:bg-black hover:text-white"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
+          ].map(
+            (
+              item
+            ) => (
+              <button
+                key={
+                  item
+                }
+                onClick={() =>
+                  setActiveFilter(
+                    item
+                  )
+                }
+                className={`px-5 py-3 text-xs uppercase tracking-[0.30em] border transition ${
+                  activeFilter ===
+                  item
+                    ? "bg-[#1C2120] text-white border-black"
+                    : "bg-white border-[#1C2120]/10 hover:bg-[#1C2120] hover:text-white"
+                }`}
+              >
+                {item}
+              </button>
+            )
+          )}
         </div>
       </section>
 
       {/* PRODUCTS */}
-      <section className="max-w-7xl mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+      <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+
         {loading ? (
-          <p className="text-lg">
+          <p>
             Loading Products...
           </p>
         ) : filteredProducts.length ===
@@ -312,166 +396,47 @@ useEffect(() => {
           </p>
         ) : (
           filteredProducts.map(
-            (item) => {
-              const primaryImage =
+            (
+              item
+            ) => {
+              const image =
+                item.primaryImage ||
                 item.images?.find(
-                  (img) =>
+                  (
+                    img
+                  ) =>
                     img.isPrimary
-                )?.imageUrl ||
+                )
+                  ?.imageUrl ||
                 item.images?.[0]
                   ?.imageUrl;
 
-              const totalStock =
-                item.variants?.reduce(
-                  (
-                    sum,
-                    v
-                  ) =>
-                    sum +
-                    Number(
-                      v.stock ||
-                        0
-                    ),
-                  0
-                ) || 0;
-
-              const avgRating =
-                item.reviews
-                  ?.length > 0
-                  ? (
-                      item.reviews.reduce(
-                        (
-                          sum,
-                          r
-                        ) =>
-                          sum +
-                          r.rating,
-                        0
-                      ) /
-                      item
-                        .reviews
-                        .length
-                    ).toFixed(
-                      1
-                    )
-                  : "0";
-
               return (
                 <div
-                  key={item.id}
-                  className="bg-white p-4 shadow-sm hover:shadow-xl transition duration-300"
+                  key={
+                    item.id
+                  }
+                  className="bg-white p-4 border border-black/8 hover:shadow-xl transition"
                 >
                   <ProductCard
-                    id={item.id}
+                    id={
+                      item.id
+                    }
                     image={
-                      primaryImage
+                      image
                     }
                     title={
                       item.name
                     }
                     description={
-                      item.description
-                    }
-                  />
-
-                  <div className="mt-4 space-y-2">
-                    {/* Top Row */}
-                    <div className="flex justify-between">
-                      <p className="text-xs uppercase tracking-[0.25em] text-black/55">
-                        {
-                          item
-                            .category
-                            ?.name
-                        }
-                      </p>
-
-                      <p className="font-medium">
+                      <span className="text-lg font-bold text-[#1C2120]">
                         ₹
                         {
                           item.basePrice
                         }
-                      </p>
-                    </div>
-
-                    {/* Desc */}
-                    <p className="text-sm text-black/70 line-clamp-2">
-                      {
-                        item.description
-                      }
-                    </p>
-
-                    {/* Sizes */}
-                    <p className="text-sm text-black/60">
-                      Sizes:{" "}
-                      {item.variants
-                        ?.map(
-                          (
-                            v
-                          ) =>
-                            v.size
-                        )
-                        .join(
-                          ", "
-                        ) ||
-                        "N/A"}
-                    </p>
-
-                    {/* Colors */}
-                    <p className="text-sm text-black/60">
-                      Colors:{" "}
-                      {item.variants
-                        ?.map(
-                          (
-                            v
-                          ) =>
-                            v.color
-                        )
-                        .join(
-                          ", "
-                        ) ||
-                        "N/A"}
-                    </p>
-
-                    {/* Stock */}
-                    <p className="text-sm">
-                      Stock:{" "}
-                      <span
-                        className={
-                          totalStock >
-                          0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {totalStock >
-                        0
-                          ? `${totalStock} Available`
-                          : "Out of Stock"}
                       </span>
-                    </p>
-
-                    {/* Rating */}
-                    <p className="text-sm text-yellow-600">
-                      ⭐{" "}
-                      {
-                        avgRating
-                      }{" "}
-                      (
-                      {item
-                        .reviews
-                        ?.length ||
-                        0}
-                      )
-                    </p>
-
-                    {/* CTA */}
-                    <NavLink
-                      to={`/product/${item.id}`}
-                      className="block text-center mt-4 border border-black px-4 py-3 text-xs uppercase tracking-[0.25em] hover:bg-black hover:text-white transition"
-                    >
-                      Explore
-                    </NavLink>
-                  </div>
+                    }
+                  />
                 </div>
               );
             }
@@ -479,22 +444,28 @@ useEffect(() => {
         )}
       </section>
 
-      {/* EDITORIAL */}
+      {/* CTA */}
       <section className="border-t border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-24 text-center">
+
           <p className="text-xs uppercase tracking-[0.35em] text-black/50 mb-5">
             Private Atelier
           </p>
 
-          <h2 className="text-4xl md:text-6xl text-black leading-tight">
+          <h2
+            className="text-4xl md:text-6xl"
+            style={{
+              fontFamily:
+                "TanAngleton, serif",
+            }}
+          >
             Design What Does
             <br />
             Not Yet Exist
           </h2>
 
           <p className="mt-8 max-w-2xl mx-auto text-black/70 leading-8">
-            Personalize threads,
-            patterns, and embroidery
+            Personalize threads, patterns and embroidery
             in your own masterpiece.
           </p>
 

@@ -12,6 +12,10 @@ import HeritagePage from "./features/heritage/heritagePage";
 import SearchPage from "./features/search/searchPage";
 import CarePage from "./features/care/carePage";
 import CartPage from "./features/cart/cartPage";
+import AdminProducts from "./features/shop/adminProducts";
+import AdminDashboard from "./features/admin/adminDashboard";
+import CategoryPage from "./features/category/categoryPage";
+import ProductDetails from "./features/shop/productDetails";
 
 function App() {
   return (
@@ -35,6 +39,10 @@ function App() {
           <Route path="/care" element={<CarePage />} />
           <Route path="/search" element={<SearchPage/>} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route path="/category" element={<CategoryPage />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
         </Routes>
       </main>
 

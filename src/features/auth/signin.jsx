@@ -1,122 +1,286 @@
+// ===============================
+// SIGNIN PAGE (FINAL UPDATED)
+// ROLE BASED LOGIN REDIRECT
+// ===============================
+
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../auth/authService"
 
 export default function SignIn({ setMode }) {
-    const [form, setForm] = useState({
-        email: "",
-        password: "",
-    });
+  const navigate = useNavigate();
 
-    const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({
+    usernameOrEmail: "",
+    password: "",
+  });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-    const validate = () => {
-        const err = {};
+  const strongPasswordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
 
-        if (!emailRegex.test(form.email)) {
-            err.email = "Enter valid email";
-        }
+  // ===============================
+  // VALIDATION
+  // ===============================
+  const validate = () => {
+    const err = {};
 
-        if (!strongPasswordRegex.test(form.password)) {
-            err.password =
-                "Password must include upper, lower & number (6+ chars)";
-        }
+    if (!form.usernameOrEmail.trim()) {
+      err.usernameOrEmail =
+        "Username or Email required";
+    }
 
-        setErrors(err);
-        return Object.keys(err).length === 0;
-    };
+    if (!form.password.trim()) {
+      err.password = "Password required";
+    } else if (
+      !strongPasswordRegex.test(form.password)
+    ) {
+      err.password =
+        "Password must include upper, lower & number";
+    }
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!validate()) return;
+    setErrors(err);
 
-        console.log("SIGN IN:", form);
-    };
+    return Object.keys(err).length === 0;
+  };
 
-    return (
-        <div className="w-full max-w-md">
- <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-3"
- style={{ fontFamily: "Cardo, serif" }}>
-    Private Access
-  </p>
+  // ===============================
+  // LOGIN
+  // ===============================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  <h1
-    className="text-4xl md:text-5xl text-[#1C2120] leading-tight"
-    style={{ fontFamily: "TanAngleton, serif" }}
-  >
-    Sign In
-  </h1>
+    if (!validate()) return;
 
-  <p className="mt-4 text-sm text-[#1C2120]/65 tracking-wide"
-  style={{ fontFamily: "Cardo, serif" }}>
-    Enter your credentials to continue your Bivela journey.
-  </p>
+    try {
+      setLoading(true);
 
-            <form onSubmit={handleSubmit} className="space-y-5 mt-8">
+      const payload = {
+        usernameOrEmail:
+          form.usernameOrEmail.trim(),
+        password: form.password,
+      };
 
-                {/* EMAIL */}
-                <div>
-                    <label className="block text-sm text-[#1C2120] mb-1">
-                        Email
-                    </label>
-                    <input
-                        type="email"
-                        placeholder="you@gmail.com"
-                        value={form.email}
-                        onChange={(e) =>
-                            setForm({ ...form, email: e.target.value })
-                        }
-                        className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:border-black"
-                    />
-                    {errors.email && (
-                        <p className="text-xs text-red-500 mt-1">{errors.email}</p>
-                    )}
-                </div>
+      const res = await loginUser(payload);
 
-                {/* PASSWORD */}
-                <div>
-                    <label className="block text-sm text-[#1C2120] mb-1">
-                        Password
-                    </label>
-                    <input
-                        type="password"
-                        placeholder="********"
-                        value={form.password}
-                        onChange={(e) =>
-                            setForm({ ...form, password: e.target.value })
-                        }
-                        className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:border-black"
-                    />
-                    {errors.password && (
-                        <p className="text-xs text-red-500 mt-1">{errors.password}</p>
-                    )}
-                </div>
+      console.log("LOGIN SUCCESS:", res);
 
-                <button className="w-full bg-[#1C2120] font-serif text-white py-2 text-sm tracking-widest hover:bg-gray-800 transition"
-                style={{ fontFamily: "Cardo, serif" }}>
-                    Sign In
-                </button>
+      // ===============================
+      // SAVE TOKEN
+      // ===============================
+      if (res?.token) {
+        localStorage.setItem(
+          "token",
+          res.token
+        );
+      }
 
-            </form>
+      // ===============================
+      // SAVE USER
+      // ===============================
+      if (res?.user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(res.user)
+        );
+      }
 
-            <div className="text-center mt-6 text-sm space-y-2">
-                <p>
+      const roles =
+        res?.user?.roles || [];
 
-                    <button onClick={() => setMode("signup")} className="underline font-serif text-[#1C2120] hover:text-gray-600"
-                        style={{ fontFamily: "Cardo, serif" }}>
-                        Create account
-                    </button>
-                </p>
+      alert("Login successful");
 
-                <p>
-                    <button onClick={() => setMode("forgot")} className="underline font-serif text-[#1C2120] hover:text-gray-600"
-                        style={{ fontFamily: "Cardo, serif" }}>
-                        Forgotten your password?
-                    </button>
-                </p>
-            </div>
+      // ===============================
+      // ROLE BASED REDIRECT
+      // ===============================
+      if (
+        roles.includes("ROLE_ADMIN")
+      ) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
 
+    } catch (err) {
+      console.error(
+        "LOGIN ERROR:",
+        err
+      );
+
+      alert(
+        err?.response?.data
+          ?.message ||
+          err?.message ||
+          "Login failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-md">
+      {/* HEADER */}
+      <p
+        className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-3"
+        style={{
+          fontFamily:
+            "Cardo, serif",
+        }}
+      >
+        Private Access
+      </p>
+
+      <h1
+        className="text-4xl md:text-5xl text-[#1C2120]"
+        style={{
+          fontFamily:
+            "TanAngleton, serif",
+        }}
+      >
+        Sign In
+      </h1>
+
+      <p
+        className="mt-4 text-sm text-[#1C2120]/65"
+        style={{
+          fontFamily:
+            "Cardo, serif",
+        }}
+      >
+        Enter your credentials to continue
+        your Bivela journey.
+      </p>
+
+      {/* FORM */}
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 mt-8"
+      >
+        {/* USERNAME */}
+        <div>
+          <label className="block text-sm mb-1 text-[#1C2120]">
+            Username or Email
+          </label>
+
+          <input
+            type="text"
+            placeholder="username or email"
+            value={
+              form.usernameOrEmail
+            }
+            onChange={(e) =>
+              setForm({
+                ...form,
+                usernameOrEmail:
+                  e.target.value,
+              })
+            }
+            className="w-full border border-gray-300 p-3 rounded-md outline-none focus:border-black"
+          />
+
+          {errors.usernameOrEmail && (
+            <p className="text-xs text-red-500 mt-1">
+              {
+                errors.usernameOrEmail
+              }
+            </p>
+          )}
         </div>
-    );
+
+        {/* PASSWORD */}
+        <div>
+          <label className="block text-sm mb-1 text-[#1C2120]">
+            Password
+          </label>
+
+          <div className="relative">
+            <input
+              type={
+                showPassword
+                  ? "text"
+                  : "password"
+              }
+              placeholder="********"
+              value={
+                form.password
+              }
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  password:
+                    e.target.value,
+                })
+              }
+              className="w-full border border-gray-300 p-3 rounded-md pr-10 outline-none focus:border-black"
+            />
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowPassword(
+                  !showPassword
+                )
+              }
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? (
+                <Eye size={18} />
+              ) : (
+                <EyeOff
+                  size={18}
+                />
+              )}
+            </button>
+          </div>
+
+          {errors.password && (
+            <p className="text-xs text-red-500 mt-1">
+              {errors.password}
+            </p>
+          )}
+        </div>
+
+        {/* BUTTON */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-[#1C2120] text-white py-3 tracking-widest hover:bg-black transition disabled:opacity-60"
+          style={{
+            fontFamily:
+              "Cardo, serif",
+          }}
+        >
+          {loading
+            ? "Signing In..."
+            : "Sign In"}
+        </button>
+      </form>
+
+      {/* LINKS */}
+      <div className="text-center mt-6 text-sm space-y-2 text-[#1C2120]">
+        <button
+          onClick={() =>
+            setMode("signup")
+          }
+          className="underline"
+        >
+          Create account
+        </button>
+
+        <button
+          onClick={() =>
+            setMode("forgot")
+          }
+          className="underline block mx-auto text-[#1C2120]"
+        >
+          Forgotten your password?
+        </button>
+      </div>
+    </div>
+  );
 }

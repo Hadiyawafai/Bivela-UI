@@ -6,41 +6,44 @@ import one from "../../assets/one.jpeg";
 import two from "../../assets/two.jpeg";
 import three from "../../assets/three.jpeg";
 
-const images = [one, two, three];
+import { getAllProducts } from "../shop/shopService";
 
-const products = [
-  {
-    id: 1,
-    image: one,
-    title: "Pashmina",
-    description:
-      "Made from the fine wool of the Changthangi goat, known for softness, warmth, and timeless elegance.",
-  },
-  {
-    id: 2,
-    image: two,
-    title: "Jamawar",
-    description:
-      "Recognized for intricate woven floral patterns and regal heritage craftsmanship.",
-  },
-  {
-    id: 3,
-    image: three,
-    title: "Kani",
-    description:
-      "Traditionally woven in Kashmir using wooden sticks called kanis with unmatched artistry.",
-  },
-];
+const heroImages = [one, two, three];
 
 function Home() {
   const [index, setIndex] = useState(0);
+  const [products, setProducts] = useState([]);
 
+  // ======================================
+  // HERO SLIDER
+  // ======================================
   useEffect(() => {
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
+      setIndex((prev) => (prev + 1) % heroImages.length);
     }, 3500);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // ======================================
+  // FETCH REAL PRODUCTS FROM SHOP API
+  // ======================================
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getAllProducts();
+
+        const safe = Array.isArray(data)
+          ? data.slice(0, 3)
+          : [];
+
+        setProducts(safe);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   return (
@@ -48,20 +51,19 @@ function Home() {
       {/* HERO */}
       <section className="relative h-screen w-full">
         <img
-          src={images[index]}
+          src={heroImages[index]}
           alt="hero"
           className="w-full h-full object-cover transition duration-1000"
         />
 
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <div className="text-center px-6 max-w-5xl">
-  <p
-    className="text-[#F2F0EF] text-xs md:text-sm uppercase tracking-[0.45em] mb-6 mt-5"
-    style={{ fontFamily: "Cardo, serif" }}
-  >
-    House Of Bivela
-  </p>
-
+            <p
+              className="text-[#F2F0EF] text-xs md:text-sm uppercase tracking-[0.45em] mb-6 mt-5"
+              style={{ fontFamily: "Cardo, serif" }}
+            >
+              House Of Bivela
+            </p>
 
             <h1
               className="text-[#F2F0EF] text-4xl md:text-7xl leading-tight"
@@ -91,7 +93,7 @@ function Home() {
         </div>
       </section>
 
-      {/* COLLECTIONS */}
+      {/* REAL PRODUCTS */}
       <section className="border-t border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-24">
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-14">
@@ -121,16 +123,28 @@ function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {products.map((item) => (
-              <div key={item.id} className="max-w-[340px] mx-auto w-full">
-                <ProductCard
-                  id={item.id}
-                  image={item.image}
-                  title={item.title}
-                  description={item.description}
-                />
-              </div>
-            ))}
+            {products.map((item) => {
+              const image =
+                item.primaryImage ||
+                item.images?.find(
+                  (img) => img.isPrimary
+                )?.imageUrl ||
+                item.images?.[0]?.imageUrl;
+
+              return (
+                <div
+                  key={item.id}
+                  className="max-w-[340px] mx-auto w-full"
+                >
+                  <ProductCard
+                    id={item.id}
+                    image={image}
+                    title={item.name}
+                    description={`₹${item.basePrice}`}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

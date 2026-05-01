@@ -12,6 +12,9 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  // headers: {
+  //   "Content-Type": "application/json",
+  // },
 });
 
 // 🔐 Attach Token

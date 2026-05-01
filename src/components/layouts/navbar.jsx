@@ -4,8 +4,9 @@ import {
   Menu,
   User,
   Search,
-  ChevronDown,
   X,
+  LogOut,
+  Shield,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -16,15 +17,45 @@ const Navbar = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === "/auth";
 
+  // ===============================
+  // LOGIN DATA
+  // ===============================
+  const token = localStorage.getItem("token");
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+
+  const roles = storedUser?.roles || [];
+
+  const isLoggedIn = !!token;
+  const isAdmin = roles.includes("ROLE_ADMIN");
+  const isUser = roles.includes("ROLE_USER");
+
+  // ===============================
+  // SCROLL EFFECT
+  // ===============================
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 15);
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () =>
+      window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ===============================
+  // LOGOUT
+  // ===============================
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.href = "/";
+  };
+
+  // ===============================
+  // STYLE LOGIC
+  // ===============================
   const darkMode = scrolled || isAuthPage || menuOpen;
 
   const bgClass = darkMode
@@ -83,44 +114,41 @@ const Navbar = () => {
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${bgClass}`}
       >
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-          {/* MOBILE HAMBURGER */}
+
+          {/* MOBILE MENU */}
           <div className="lg:hidden w-1/3">
             <button onClick={() => setMenuOpen(true)}>
               <Menu
-                className={`w-5 h-5 transition-all duration-300 ${textClass}`}
+                className={`w-5 h-5 ${textClass}`}
               />
             </button>
           </div>
 
-          {/* DESKTOP LEFT */}
-          <div className="hidden lg:flex w-1/3 items-center gap-6">
-            <div className="flex items-center gap-7">
-              <NavLink
-                to="/shop"
-                className={navLinkClass}
-                style={navTextStyle}
-              >
-                <span className="flex items-center gap-1">
-                  Shop 
-                </span>
-              </NavLink>
+          {/* LEFT */}
+          <div className="hidden lg:flex w-1/3 items-center gap-7">
+            <NavLink
+              to="/shop"
+              className={navLinkClass}
+              style={navTextStyle}
+            >
+              Shop
+            </NavLink>
 
-              <NavLink
-                to="/heritage"
-                className={navLinkClass}
-                style={navTextStyle}
-              >
-                Heritage
-              </NavLink>
+            <NavLink
+              to="/heritage"
+              className={navLinkClass}
+              style={navTextStyle}
+            >
+              Heritage
+            </NavLink>
 
-              <NavLink
-                to="/atelier"
-                className={navLinkClass}
-                style={navTextStyle}
-              >
-                Atelier
-              </NavLink>
-            </div>
+            <NavLink
+              to="/atelier"
+              className={navLinkClass}
+              style={navTextStyle}
+            >
+              Atelier
+            </NavLink>
           </div>
 
           {/* CENTER LOGO */}
@@ -129,20 +157,19 @@ const Navbar = () => {
               <div className="relative inline-block">
                 <NavLink to="/">
                   <span
-                    className={`font-semibold transition-all duration-300 ${textClass}`}
+                    className={`${textClass}`}
                     style={{
                       fontFamily: "TanAngleton, serif",
-                      letterSpacing: "-0.06em",
                       fontSize: "42px",
+                      letterSpacing: "-0.06em",
                     }}
                   >
                     BIVELA
                   </span>
                 </NavLink>
 
-                {/* TM */}
                 <span
-                  className={`absolute -top-1 right-0 translate-x-[140%] text-[6px] leading-none border rounded-full w-[16px] h-[16px] flex items-center justify-center ${textClass} ${tmBorder}`}
+                  className={`absolute -top-1 right-0 translate-x-[140%] text-[6px] border rounded-full w-[16px] h-[16px] flex items-center justify-center ${textClass} ${tmBorder}`}
                   style={navTextStyle}
                 >
                   TM
@@ -150,7 +177,7 @@ const Navbar = () => {
               </div>
 
               <span
-                className={`mt-1 transition-all duration-300 ${textClass}`}
+                className={`mt-1 ${textClass}`}
                 style={{
                   fontFamily: "Cardo, serif",
                   letterSpacing: "0.40em",
@@ -162,11 +189,12 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* DESKTOP RIGHT */}
+          {/* RIGHT */}
           <div className="hidden lg:flex w-1/3 justify-end items-center gap-6">
+
             <NavLink to="/search">
               <Search
-                className={`w-5 h-5 transition-all duration-300 ${textClass}`}
+                className={`w-5 h-5 ${textClass}`}
               />
             </NavLink>
 
@@ -180,18 +208,47 @@ const Navbar = () => {
 
             <NavLink to="/cart">
               <ShoppingBag
-                className={`w-5 h-5 transition-all duration-300 ${textClass}`}
+                className={`w-5 h-5 ${textClass}`}
               />
             </NavLink>
 
-            <NavLink to="/auth">
-              <User
-                className={`w-5 h-5 transition-all duration-300 ${textClass}`}
-              />
-            </NavLink>
+            {/* NOT LOGGED IN */}
+            {!isLoggedIn && (
+              <NavLink to="/auth">
+                <User
+                  className={`w-5 h-5 ${textClass}`}
+                />
+              </NavLink>
+            )}
+
+            {/* CUSTOMER */}
+            {isLoggedIn && isUser && (
+              <NavLink to="/profile">
+                <User
+                  className={`w-5 h-5 ${textClass}`}
+                />
+              </NavLink>
+            )}
+
+            {/* ADMIN */}
+            {isLoggedIn && isAdmin && (
+              <NavLink to="/admin/dashboard">
+                <Shield
+                  className={`w-5 h-5 ${textClass}`}
+                />
+              </NavLink>
+            )}
+
+            {/* LOGOUT */}
+            {isLoggedIn && (
+              <button onClick={handleLogout}>
+                <LogOut
+                  className={`w-5 h-5 ${textClass}`}
+                />
+              </button>
+            )}
           </div>
 
-          {/* MOBILE EMPTY SPACE */}
           <div className="lg:hidden w-1/3"></div>
         </div>
 
@@ -220,16 +277,103 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* ALL ITEMS */}
+        {/* MENU LINKS */}
         <div className="px-6 py-8 flex flex-col">
-          <NavLink to="/" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Home</NavLink>
-          <NavLink to="/shop" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Shop</NavLink>
-          <NavLink to="/heritage" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Heritage</NavLink>
-          <NavLink to="/atelier" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Atelier</NavLink>
-          <NavLink to="/search" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Search</NavLink>
-          <NavLink to="/care" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Care</NavLink>
-          <NavLink to="/cart" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Cart</NavLink>
-          <NavLink to="/auth" className={mobileLinkClass} onClick={() => setMenuOpen(false)}>Account</NavLink>
+
+          <NavLink
+            to="/"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
+          </NavLink>
+
+          <NavLink
+            to="/shop"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Shop
+          </NavLink>
+
+          <NavLink
+            to="/heritage"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Heritage
+          </NavLink>
+
+          <NavLink
+            to="/atelier"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Atelier
+          </NavLink>
+
+          <NavLink
+            to="/search"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Search
+          </NavLink>
+
+          <NavLink
+            to="/care"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Care
+          </NavLink>
+
+          <NavLink
+            to="/cart"
+            className={mobileLinkClass}
+            onClick={() => setMenuOpen(false)}
+          >
+            Cart
+          </NavLink>
+
+          {!isLoggedIn && (
+            <NavLink
+              to="/auth"
+              className={mobileLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
+              Account
+            </NavLink>
+          )}
+
+          {isLoggedIn && isUser && (
+            <NavLink
+              to="/profile"
+              className={mobileLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
+              My Profile
+            </NavLink>
+          )}
+
+          {isLoggedIn && isAdmin && (
+            <NavLink
+              to="/admin/dashboard"
+              className={mobileLinkClass}
+              onClick={() => setMenuOpen(false)}
+            >
+              Admin Dashboard
+            </NavLink>
+          )}
+
+          {isLoggedIn && (
+            <button
+              onClick={handleLogout}
+              className={mobileLinkClass}
+            >
+              Logout
+            </button>
+          )}
         </div>
       </div>
     </>
