@@ -66,7 +66,6 @@ export default function ProductForm({
       const res = await getAllCategories();
       setCategories(Array.isArray(res) ? res : res.data);
     };
-
     fetch();
   }, []);
 
@@ -91,7 +90,25 @@ export default function ProductForm({
   };
 
   // ======================================
-  // SUBMIT (FINAL FIXED)
+  // IMAGE HANDLER (FINAL FIX)
+  // ======================================
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (images.length + files.length > 5) {
+      alert("You can upload maximum 5 images");
+      return;
+    }
+
+    setImages((prev) => [...prev, ...files]);
+  };
+
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  // ======================================
+  // SUBMIT
   // ======================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,8 +120,6 @@ export default function ProductForm({
         description: form.description.trim(),
         basePrice: Number(form.basePrice),
         categoryId: Number(form.categoryId),
-
-        // no id sent (fixes backend 500)
         variants: variants.map((v) => ({
           size: v.size.trim(),
           color: v.color.trim(),
@@ -114,16 +129,9 @@ export default function ProductForm({
       };
 
       if (isEdit) {
-        await updateProduct(
-          editData.id,
-          payload,
-          images
-        );
+        await updateProduct(editData.id, payload, images);
       } else {
-        await createProduct(
-          payload,
-          images
-        );
+        await createProduct(payload, images);
       }
 
       onSuccess();
@@ -183,40 +191,30 @@ export default function ProductForm({
           {/* TOP */}
           <div className="grid grid-cols-4 gap-4">
 
-            {/* NAME */}
             <div className="col-span-2">
               <label className="text-sm font-medium mb-1 block">
                 Product Name
               </label>
-
               <input
-                placeholder="Luxury Shawl"
                 value={form.name}
+                placeholder="luxury Shawls"
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    name: e.target.value,
-                  })
+                  setForm({ ...form, name: e.target.value })
                 }
                 className="w-full border rounded-xl px-4 py-3"
               />
             </div>
 
-            {/* PRICE */}
             <div>
               <label className="text-sm font-medium mb-1 block">
                 Base Price
               </label>
-
               <input
                 type="number"
-                placeholder="4999"
                 value={form.basePrice}
+                placeholder="Enter Price"
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    basePrice: e.target.value,
-                  })
+                  setForm({ ...form, basePrice: e.target.value })
                 }
                 className="w-full border rounded-xl px-4 py-3"
               />
@@ -232,14 +230,8 @@ export default function ProductForm({
                 onClick={() => setOpenCat(!openCat)}
                 className="border rounded-xl px-4 py-3 cursor-pointer flex justify-between"
               >
-                <span>
-                  {selectedCategory?.name ||
-                    "Select"}
-                </span>
-
-                <span>
-                  {openCat ? "▲" : "▼"}
-                </span>
+                <span>{selectedCategory?.name || "Select"}</span>
+                <span>{openCat ? "▲" : "▼"}</span>
               </div>
 
               {openCat && (
@@ -248,10 +240,7 @@ export default function ProductForm({
                     <div
                       key={cat.id}
                       onClick={() => {
-                        setForm({
-                          ...form,
-                          categoryId: cat.id,
-                        });
+                        setForm({ ...form, categoryId: cat.id });
                         setOpenCat(false);
                       }}
                       className="px-4 py-3 hover:bg-black hover:text-white cursor-pointer"
@@ -265,27 +254,24 @@ export default function ProductForm({
           </div>
 
           {/* EXISTING IMAGES */}
-          {isEdit &&
-            existingImages.length > 0 && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Existing Images
-                </label>
+          {isEdit && existingImages.length > 0 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Existing Images
+              </label>
 
-                <div className="flex gap-2 flex-wrap">
-                  {existingImages.map(
-                    (img, i) => (
-                      <img
-                        key={i}
-                        src={img.imageUrl}
-                        alt=""
-                        className="w-14 h-14 rounded-xl object-cover border"
-                      />
-                    )
-                  )}
-                </div>
+              <div className="flex gap-2 flex-wrap">
+                {existingImages.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img.imageUrl}
+                    alt=""
+                    className="w-14 h-14 rounded-xl object-cover border"
+                  />
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
           {/* VARIANTS */}
           <div>
@@ -305,19 +291,12 @@ export default function ProductForm({
 
             <div className="space-y-2">
               {variants.map((v, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-5 gap-2"
-                >
+                <div key={i} className="grid grid-cols-5 gap-2">
                   <input
                     placeholder="Size"
                     value={v.size}
                     onChange={(e) =>
-                      updateVariant(
-                        i,
-                        "size",
-                        e.target.value
-                      )
+                      updateVariant(i, "size", e.target.value)
                     }
                     className="border rounded-xl px-3 py-2"
                   />
@@ -326,11 +305,7 @@ export default function ProductForm({
                     placeholder="Color"
                     value={v.color}
                     onChange={(e) =>
-                      updateVariant(
-                        i,
-                        "color",
-                        e.target.value
-                      )
+                      updateVariant(i, "color", e.target.value)
                     }
                     className="border rounded-xl px-3 py-2"
                   />
@@ -340,11 +315,7 @@ export default function ProductForm({
                     placeholder="Price"
                     value={v.price}
                     onChange={(e) =>
-                      updateVariant(
-                        i,
-                        "price",
-                        e.target.value
-                      )
+                      updateVariant(i, "price", e.target.value)
                     }
                     className="border rounded-xl px-3 py-2"
                   />
@@ -354,83 +325,79 @@ export default function ProductForm({
                     placeholder="Stock"
                     value={v.stock}
                     onChange={(e) =>
-                      updateVariant(
-                        i,
-                        "stock",
-                        e.target.value
-                      )
+                      updateVariant(i, "stock", e.target.value)
                     }
                     className="border rounded-xl px-3 py-2"
                   />
 
-                  {variants.length > 1 ? (
+                  {variants.length > 1 && (
                     <button
                       type="button"
-                      onClick={() =>
-                        removeVariant(i)
-                      }
+                      onClick={() => removeVariant(i)}
                       className="border border-red-500 text-red-500 rounded-xl hover:bg-red-500 hover:text-white"
                     >
                       Remove
                     </button>
-                  ) : (
-                    <div />
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* BOTTOM */}
+          {/* DESCRIPTION + IMAGE */}
           <div className="grid grid-cols-3 gap-4">
 
-            {/* DESCRIPTION */}
             <div className="col-span-2">
               <label className="text-sm font-medium mb-1 block">
                 Description
               </label>
-
               <textarea
                 rows="4"
-                placeholder="Premium handcrafted luxury product..."
                 value={form.description}
+                placeholder="Description"
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    description:
-                      e.target.value,
-                  })
+                  setForm({ ...form, description: e.target.value })
                 }
-                className="w-full border rounded-2xl px-4 py-3 resize-none outline-none"
+                className="w-full border rounded-2xl px-4 py-3"
               />
             </div>
 
-            {/* UPLOAD */}
+            {/* IMAGE UPLOAD */}
             <div>
               <label className="text-sm font-medium mb-1 block">
-                Upload Photos
+                Upload Photos (Max 5)
               </label>
 
-              <div className="border rounded-2xl px-4 py-3 min-h-[118px] bg-white">
+              <div className="border rounded-2xl px-4 py-3 min-h-[118px]">
 
                 <input
                   type="file"
                   multiple
-                  onChange={(e) =>
-                    setImages([
-                      ...e.target.files,
-                    ])
-                  }
-                  className="text-sm cursor-pointer file:border-0 file:bg-transparent file:text-black file:p-0 file:mr-2 outline-none"
+                  onChange={handleImageChange}
+                  className="text-sm"
                 />
 
+                {/* PREVIEW */}
                 {images.length > 0 && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    {
-                      images.length
-                    }{" "}
-                    file(s) selected
-                  </p>
+                  <div className="flex gap-2 flex-wrap mt-3">
+                    {images.map((file, i) => (
+                      <div key={i} className="relative">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt=""
+                          className="w-16 h-16 object-cover rounded-xl border"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="absolute -top-2 -right-2 bg-black text-white w-5 h-5 rounded-full text-xs"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
