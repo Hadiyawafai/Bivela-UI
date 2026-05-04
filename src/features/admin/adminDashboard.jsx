@@ -64,7 +64,7 @@ export default function AdminDashboard() {
 
             <Route
               path="orders"
-              element={<h1>Orders Coming Soon</h1>}
+              element={<OrderPage/>}
             />
 
             <Route

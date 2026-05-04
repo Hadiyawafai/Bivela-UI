@@ -16,6 +16,7 @@ import AdminProducts from "./features/shop/adminProducts";
 import AdminDashboard from "./features/admin/adminDashboard";
 import CategoryPage from "./features/category/categoryPage";
 import ProductDetails from "./features/shop/productDetails";
+import OrderPage from "./features/orders/orderPage";
 
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/category" element={<CategoryPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/admin/orders" element={<OrderPage />} />
         
         </Routes>
       </main>
