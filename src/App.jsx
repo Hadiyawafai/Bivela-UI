@@ -17,6 +17,7 @@ import AdminDashboard from "./features/admin/adminDashboard";
 import CategoryPage from "./features/category/categoryPage";
 import ProductDetails from "./features/shop/productDetails";
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -43,6 +44,7 @@ function App() {
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/category" element={<CategoryPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
+        
         </Routes>
       </main>
 
