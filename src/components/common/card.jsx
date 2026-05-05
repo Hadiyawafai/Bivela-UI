@@ -6,10 +6,10 @@ function ProductCard({
   image,
   title,
   description,
+  price, // ✅ NEW PROP
 }) {
   const navigate = useNavigate();
 
-  // 🔥 local state for smooth image switching
   const [currentImage, setCurrentImage] = useState(image);
 
   useEffect(() => {
@@ -18,13 +18,12 @@ function ProductCard({
 
   return (
     <div className="group cursor-pointer w-full">
-      {/* CARD */}
       <div className="bg-[#F2F0EF] border border-black/8 overflow-hidden transition duration-500 hover:shadow-xl">
 
         {/* IMAGE */}
         <div className="overflow-hidden">
           <img
-            src={currentImage || "/placeholder.png"} // fallback
+            src={currentImage || "/placeholder.png"}
             alt={title}
             className="w-full h-[270px] object-cover transition duration-700 group-hover:scale-105"
           />
@@ -33,46 +32,27 @@ function ProductCard({
         {/* CONTENT */}
         <div className="px-5 py-4">
 
-          {/* SMALL LABEL */}
-          <p
-            className="text-[10px] uppercase tracking-[0.32em] text-[#1C2120]/45 mb-2"
-            style={{
-              fontFamily: "Cardo, serif",
-            }}
-          >
+          <p className="text-[10px] uppercase tracking-[0.32em] text-[#1C2120]/45 mb-2">
             Bivela Edition
           </p>
 
-          {/* TITLE */}
-          <h3
-            className="text-[24px] leading-none text-[#1C2120] mb-3"
-            style={{
-              fontFamily: "TanAngleton, serif",
-            }}
-          >
+          <h3 className="text-[24px] text-[#1C2120] mb-2">
             {title}
           </h3>
 
-          {/* BUTTON */}
+          {/* ✅ PRICE FIX */}
+          <p className="text-lg font-semibold text-[#1C2120] mb-3">
+            ₹{price ?? 0}
+          </p>
+
           <button
-            onClick={() =>
-              navigate(`/product/${id}`)
-            }
+            onClick={() => navigate(`/product/${id}`)}
             className="text-[11px] uppercase tracking-[0.26em] border-b border-[#1C2120] pb-1 hover:opacity-60 transition mb-4"
-            style={{
-              fontFamily: "Cardo, serif",
-            }}
           >
             Own This Piece
           </button>
 
-          {/* DESCRIPTION */}
-          <p
-            className="text-sm leading-6 text-[#1C2120]/70 min-h-[56px]"
-            style={{
-              fontFamily: "Cardo, serif",
-            }}
-          >
+          <p className="text-sm text-[#1C2120]/70 min-h-[56px]">
             {description}
           </p>
 

@@ -1,6 +1,5 @@
 // =======================================================
-// src/features/shop/ProductDetails.jsx
-// CLEAR PRODUCT DETAILS + REVIEWS MAP
+// FINAL PRODUCT DETAILS (CART + BUY NOW ADDED)
 // =======================================================
 
 import React, { useEffect, useState } from "react";
@@ -10,109 +9,171 @@ import {
   NavLink,
 } from "react-router-dom";
 
-import { getProductById } from "./shopService";
+import { getProductById } from "../shop/shopService";
+import { addToCart } from "../cart/cartService";
+
+// 🔥 ADD THIS IMPORT (ORDER SERVICE)
+import { initiateOrder } from "../orders/orderService";
 
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [product, setProduct] =
-    useState(null);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [selectedImage,
-    setSelectedImage] =
-    useState("");
-
-  const [selectedVariant,
-    setSelectedVariant] =
-    useState(null);
-
-  // =====================================
+  // =============================
   // FETCH PRODUCT
-  // =====================================
+  // =============================
   useEffect(() => {
-    const fetchProduct =
-      async () => {
-        try {
-          setLoading(true);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
 
-          const data =
-            await getProductById(id);
+        const data = await getProductById(id);
+        setProduct(data);
 
-          setProduct(data);
+        const first =
+          data.primaryImage ||
+          data.images?.find((img) => img.isPrimary)?.imageUrl ||
+          data.images?.[0]?.imageUrl ||
+          "";
 
-          const first =
-            data.primaryImage ||
-            data.images?.find(
-              (img) =>
-                img.isPrimary
-            )?.imageUrl ||
-            data.images?.[0]
-              ?.imageUrl ||
-            "";
+        setSelectedImage(first);
 
-          setSelectedImage(
-            first
-          );
-
-          if (
-            data.variants
-              ?.length > 0
-          ) {
-            setSelectedVariant(
-              data
-                .variants[0]
-            );
-          }
-
-        } catch (error) {
-          console.log(error);
-        } finally {
-          setLoading(false);
+        if (data.variants?.length > 0) {
+          setSelectedVariant(data.variants[0]);
         }
-      };
+      } catch (error) {
+        console.log("PRODUCT ERROR:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchProduct();
   }, [id]);
 
-  // =====================================
-  // ADD TO BAG
-  // =====================================
-  const handleAddToBag =
-    () => {
-      const cart =
-        JSON.parse(
-          localStorage.getItem(
-            "cart"
-          )
-        ) || [];
+  // =============================
+  const getVariant = () => {
+    return selectedVariant || product?.variants?.[0];
+  };
 
-      cart.push({
-        id: product.id,
-        name: product.name,
-        image:
-          selectedImage,
-        price:
-          selectedVariant
-            ?.price ||
-          product.basePrice,
-        qty: 1,
+  // =============================
+  // ADD TO BAG (EXISTING)
+  // =============================
+  const handleAddToBag = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Please login first");
+        navigate("/auth");
+        return;
+      }
+
+      const variant = getVariant();
+
+      if (!variant?.id) {
+        alert("Please select a variant");
+        return;
+      }
+
+      await addToCart({
+        variantId: variant.id,
+        quantity: 1,
       });
 
-      localStorage.setItem(
-        "cart",
-        JSON.stringify(
-          cart
-        )
-      );
-
+      alert("Added to Bag 🛒");
       navigate("/cart");
-    };
 
-  // =====================================
+    } catch (error) {
+      console.log("CART ERROR:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Failed to add to cart");
+    }
+  };
+
+  // =======================================================
+  // 💳 BUY NOW (NEW LOGIC ADDED)
+  // =======================================================
+  const handleBuyNow = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Please login first");
+        navigate("/auth");
+        return;
+      }
+
+      const variant = getVariant();
+
+      if (!variant?.id) {
+        alert("Please select a variant");
+        return;
+      }
+
+      // 1️⃣ Create Order from SINGLE ITEM
+      const orderRes = await initiateOrder([
+        {
+          variantId: variant.id,
+          quantity: 1,
+        },
+      ]);
+
+      const order = orderRes;
+
+      // 2️⃣ Razorpay options (backend should send these ideally)
+      const options = {
+        key: "YOUR_RAZORPAY_KEY_ID", // replace this
+        amount: order.amount || product.basePrice * 100,
+        currency: "INR",
+        name: product.name,
+        description: "Product Purchase",
+        order_id: order.razorpayOrderId, // MUST come from backend
+
+        handler: async function (response) {
+          try {
+            // verify payment
+            await fetch("/api/orders/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            });
+
+            alert("Payment Successful 🎉");
+            navigate("/orders");
+
+          } catch (err) {
+            console.log("VERIFY ERROR:", err);
+          }
+        },
+
+        theme: {
+          color: "#1C2120",
+        },
+      };
+
+      // 3️⃣ OPEN RAZORPAY
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.log("BUY NOW ERROR:", error);
+      alert("Failed to process Buy Now");
+    }
+  };
+
+  // =============================
   if (loading) {
     return (
       <div className="pt-40 text-center text-xl min-h-screen bg-[#F2F0EF]">
@@ -130,25 +191,17 @@ function ProductDetails() {
   }
 
   const price =
-    selectedVariant?.price ||
-    product.basePrice;
+    selectedVariant?.price || product.basePrice;
 
   const stock =
-    selectedVariant?.stock ??
-    0;
+    selectedVariant?.stock ?? 0;
 
   const images =
-    product.images
-      ?.length > 0
+    product.images?.length > 0
       ? product.images
-      : [
-          {
-            imageUrl:
-              product.primaryImage,
-          },
-        ];
+      : [{ imageUrl: product.primaryImage }];
 
-  // =====================================
+  // =============================
   return (
     <div className="bg-[#F2F0EF] text-[#1C2120] min-h-screen pt-32">
 
@@ -157,9 +210,7 @@ function ProductDetails() {
         <NavLink
           to="/shop"
           className="text-xs uppercase tracking-[0.30em] border-b border-[#1C2120] pb-1"
-        style={{
-              fontFamily: "TanAngleton, serif",
-            }} >
+        >
           Back To Collection
         </NavLink>
       </section>
@@ -169,256 +220,102 @@ function ProductDetails() {
 
         {/* LEFT */}
         <div>
-
-          {/* MAIN IMAGE */}
-          <div className="border border-[#1C2120]/10"
-           style={{
-              fontFamily: "TanAngleton, serif",
-            }}>
+          <div className="border border-[#1C2120]/10">
             <img
-              src={
-                selectedImage
-              }
-              alt={
-                product.name
-              }
+              src={selectedImage}
+              alt={product.name}
               className="w-full h-[650px] object-cover"
             />
           </div>
 
-          {/* THUMBS */}
           <div className="grid grid-cols-4 gap-4 mt-4">
-            {images.map(
-              (
-                img,
-                i
-              ) => (
-                <button
-                  key={i}
-                  onClick={() =>
-                    setSelectedImage(
-                      img.imageUrl
-                    )
-                  }
-                  className={`border ${
-                    selectedImage ===
-                    img.imageUrl
-                      ? "border-black"
-                      : "border-black/10"
-                  }`}
-                >
-                  <img
-                    src={
-                      img.imageUrl
-                    }
-                    alt=""
-                    className="w-full h-24 object-cover"
-                  />
-                </button>
-              )
-            )}
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedImage(img.imageUrl)}
+                className={`border ${
+                  selectedImage === img.imageUrl
+                    ? "border-black"
+                    : "border-black/10"
+                }`}
+              >
+                <img
+                  src={img.imageUrl}
+                  className="w-full h-24 object-cover"
+                />
+              </button>
+            ))}
           </div>
         </div>
 
         {/* RIGHT */}
         <div>
 
-          <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/50 mb-4"
-           style={{
-              fontFamily: "TanAngleton, serif",
-            }}>
-            House Of Bivela
-          </p>
+          <h1 className="text-5xl">{product.name}</h1>
 
-          <h1
-            className="text-5xl"
-            style={{
-              fontFamily:
-                "TanAngleton, serif",
-            }}
-          >
-            {product.name}
-          </h1>
-
-          <p className="mt-5 text-3xl">
-            ₹{price}
-          </p>
+          <p className="mt-5 text-3xl">₹{price}</p>
 
           <p className="mt-3 text-sm text-[#1C2120]/70">
-            ★{" "}
-            {product.averageRating ||
-              0}{" "}
-            / 5 ·{" "}
-            {product.totalReviews ||
-              0}{" "}
-            Reviews
+            ★ {product.averageRating || 0} / 5 ·{" "}
+            {product.totalReviews || 0} Reviews
           </p>
 
-          {/* DESCRIPTION */}
-          <div className="mt-8 space-y-4 text-[#1C2120]/75 leading-8">
-            <p>
-              {
-                product.description
-              }
-            </p>
+          <div className="mt-8 text-[#1C2120]/75 leading-8">
+            {product.description}
           </div>
 
-          {/* DETAILS */}
-          <div className="mt-10 border-t border-[#1C2120]/10 pt-8 space-y-3 text-sm"
-           style={{
-              fontFamily: "TanAngleton, serif",
-            }}>
-
+          <div className="mt-10 text-sm">
+            <p><strong>Category:</strong> {product.categoryName}</p>
             <p>
-              <strong>
-                Category:
-              </strong>{" "}
-              {
-                product.categoryName
-              }
+              <strong>Availability:</strong>{" "}
+              {stock > 0 ? "In Stock" : "Out Of Stock"}
             </p>
-
-           
-
-            <p>
-              <strong
-               style={{
-              fontFamily: "TanAngleton, serif",
-            }}>
-                Availability:
-              </strong>{" "}
-              {stock >
-              0
-                ? "In Stock"
-                : "Out Of Stock"}
-            </p>
-
           </div>
 
           {/* VARIANTS */}
-          {product.variants
-            ?.length >
-            0 && (
+          {product.variants?.length > 0 && (
             <div className="mt-10">
-              <p className="text-xs uppercase tracking-[0.30em] mb-4">
+              <p className="text-xs uppercase mb-4">
                 Select Variant
               </p>
 
-              <div className="flex flex-wrap gap-3"
-               style={{
-              fontFamily: "TanAngleton, serif",
-            }}>
-                {product.variants.map(
-                  (
-                    item
-                  ) => (
-                    <button
-                      key={
-                        item.id
-                      }
-                      onClick={() =>
-                        setSelectedVariant(
-                          item
-                        )
-                      }
-                      className={`px-5 py-3 border ${
-                        selectedVariant?.id ===
-                        item.id
-                          ? "bg-[#1C2120] text-[#F2F0EF] border-[#1C2120]"
-                          : "border-black/10"
-                      }`}
-                    >
-                      {
-                        item.color
-                      }{" "}
-                      /{" "}
-                      {
-                        item.size
-                      }
-                    </button>
-                  )
-                )}
+              <div className="flex gap-3 flex-wrap">
+                {product.variants.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedVariant(item)}
+                    className={`px-5 py-3 border ${
+                      selectedVariant?.id === item.id
+                        ? "bg-[#1C2120] text-white"
+                        : ""
+                    }`}
+                  >
+                    {item.color} / {item.size}
+                  </button>
+                ))}
               </div>
             </div>
           )}
 
-          {/* BUTTON */}
-          <button
-            onClick={
-              handleAddToBag
-            }
-            className="mt-10 w-full md:w-auto px-10 py-4 bg-[#1C2120] text-[#F2F0EF] text-xs uppercase tracking-[0.35em]"
-           style={{
-              fontFamily: "TanAngleton, serif",
-            }}>
-            Add To Bag
-          </button>
+          {/* BUTTONS */}
+          <div className="flex gap-4 mt-10">
 
-        </div>
-      </section>
+            <button
+              onClick={handleAddToBag}
+              className="px-8 py-4 bg-[#1C2120] text-white text-xs uppercase"
+            >
+              Add To Bag
+            </button>
 
-      {/* REVIEWS */}
-      <section className="border-t border-[#1C2120]/10">
-        <div className="max-w-7xl mx-auto px-6 py-24">
+            {/* 🔥 NEW BUY NOW BUTTON */}
+            <button
+              onClick={handleBuyNow}
+              className="px-8 py-4 border border-[#1C2120] text-xs uppercase"
+            >
+              Buy Now
+            </button>
 
-          <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/50 mb-4">
-            Client Reviews
-          </p>
-
-          <h2
-            className="text-4xl mb-14"
-            style={{
-              fontFamily:
-                "TanAngleton, serif",
-            }}
-          >
-            Reviews
-          </h2>
-
-          {product.reviews
-            ?.length >
-          0 ? (
-            <div className="grid md:grid-cols-2 gap-8">
-
-              {product.reviews.map(
-                (
-                  review,
-                  index
-                ) => (
-                  <div
-                    key={
-                      index
-                    }
-                    className="border border-[#1C2120]/10 p-8"
-                  >
-                    <p className="text-lg mb-3">
-                      {"★".repeat(
-                        review.rating
-                      )}
-                    </p>
-
-                    <p className="text-sm text-[#1C2120]/70 mb-3">
-                      User ID:{" "}
-                      {
-                        review.userId
-                      }
-                    </p>
-
-                    <p className="leading-7 text-[#1C2120]/75">
-                      {
-                        review.comment
-                      }
-                    </p>
-                  </div>
-                )
-              )}
-
-            </div>
-          ) : (
-            <p className="text-[#1C2120]60">
-              No reviews yet.
-            </p>
-          )}
+          </div>
 
         </div>
       </section>

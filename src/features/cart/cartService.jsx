@@ -1,46 +1,74 @@
+// =======================================================
+// ✅ CART SERVICE (FINAL + HEADERS + INTERCEPTOR SAFE)
+// =======================================================
+
 import api from "../../api/axios";
 
-const config = {
-  headers: {
-    "ngrok-skip-browser-warning": "true",
-  },
+const headers = {
+  "ngrok-skip-browser-warning": "true",
 };
 
-/**
- * ➕ Add item to cart
- */
-export const addToCart = ({ variantId, quantity }) => {
-  return api.post(
-    "/cart/add",
-    {
-      variantId: Number(variantId),
-      quantity: Number(quantity),
-    },
-    config
-  );
+// =======================================================
+// ➕ ADD TO CART
+// =======================================================
+export const addToCart = async ({ variantId, quantity }) => {
+  try {
+    const res = await api.post(
+      "/cart/add",
+      {
+        variantId: Number(variantId),
+        quantity: Number(quantity),
+      },
+      { headers }
+    );
+
+    return res;
+  } catch (error) {
+    console.log("ADD TO CART ERROR:", error?.response?.data || error.message);
+    throw error;
+  }
 };
 
-/**
- * ❤️ Add to wishlist
- */
-export const addToWishlist = (variantId) => {
-  return api.post(
-    `/cart/wishlist/${variantId}`,
-    {},
-    config
-  );
+// =======================================================
+// 📥 GET CART
+// =======================================================
+export const getCart = async () => {
+  try {
+    const res = await api.get("/cart", { headers });
+
+    return res;
+  } catch (error) {
+    console.log("GET CART ERROR:", error?.response?.data || error.message);
+    return { items: [], totalPrice: 0 };
+  }
 };
 
-/**
- * 📥 Get cart
- */
-export const getCart = () => {
-  return api.get("/cart", config);
+// =======================================================
+// ❌ REMOVE ITEM
+// =======================================================
+export const removeFromCart = async (variantId) => {
+  try {
+    const res = await api.delete(`/cart/remove/${variantId}`, {
+      headers,
+    });
+
+    return res;
+  } catch (error) {
+    console.log("REMOVE ERROR:", error?.response?.data || error.message);
+    throw error;
+  }
 };
 
-/**
- * 🗑️ Clear cart
- */
-export const clearCart = () => {
-  return api.delete("/cart/clear", config);
+// =======================================================
+// 🗑️ CLEAR CART
+// =======================================================
+export const clearCart = async () => {
+  try {
+    const res = await api.delete("/cart/clear", { headers });
+
+    return res;
+  } catch (error) {
+    console.log("CLEAR CART ERROR:", error?.response?.data || error.message);
+    throw error;
+  }
 };

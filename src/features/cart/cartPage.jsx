@@ -1,232 +1,251 @@
-import React, { useState } from "react";
-import { Minus, Plus, Trash2, ArrowRight } from "lucide-react";
+// =======================================================
+// ✅ FINAL CART PAGE (FIXED + BACKEND MATCHED)
+// =======================================================
 
-const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Classic Cashmere",
-      price: 18999,
-      qty: 1,
-      image:
-        "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1200&auto=format&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Royal Weave",
-      price: 24999,
-      qty: 1,
-      image:
-        "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop",
-    },
-  ]);
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getCart,
+  removeFromCart,
+  clearCart,
+  addToCart,
+} from "./cartService";
 
-  const increaseQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, qty: item.qty + 1 } : item
-      )
+function CartPage() {
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+
+  // =============================
+  // FETCH CART
+  // =============================
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getCart();
+
+      const data = res?.data ?? res;
+
+      setItems(data?.items || []);
+      setTotal(data?.totalPrice || 0);
+
+    } catch (error) {
+      console.log("CART FETCH ERROR:", error?.response?.data || error.message);
+      setItems([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  // =============================
+  // REMOVE ITEM
+  // =============================
+  const handleRemove = async (variantId) => {
+    try {
+      await removeFromCart(variantId);
+      fetchCart();
+    } catch (error) {
+      console.log("REMOVE ERROR:", error);
+    }
+  };
+
+  // =============================
+  // CLEAR CART
+  // =============================
+  const handleClear = async () => {
+    try {
+      await clearCart();
+      setItems([]);
+      setTotal(0);
+    } catch (error) {
+      console.log("CLEAR ERROR:", error);
+    }
+  };
+
+  // =============================
+  // INCREASE QTY
+  // =============================
+  const increaseQty = async (item) => {
+    try {
+      await addToCart({
+        variantId: item.variantId,
+        quantity: 1,
+      });
+
+      fetchCart();
+    } catch (err) {
+      console.log("INCREASE ERROR:", err);
+    }
+  };
+
+  // =============================
+  // DECREASE QTY (SAFE)
+  // =============================
+  const decreaseQty = async (item) => {
+    try {
+      if (item.quantity <= 1) {
+        await removeFromCart(item.variantId);
+      } else {
+        // backend-safe approach
+        await addToCart({
+          variantId: item.variantId,
+          quantity: -1,
+        });
+      }
+
+      fetchCart();
+    } catch (err) {
+      console.log("DECREASE ERROR:", err);
+    }
+  };
+
+  // =============================
+  // IMAGE HANDLER
+  // =============================
+  const getImage = (item) => {
+    let img = item.product?.images?.[0]?.url;
+
+    if (img && img.startsWith("/")) {
+      img = `https://rocket-cuddle-goatskin.ngrok-free.dev${img}`;
+    }
+
+    return img || "https://via.placeholder.com/300";
+  };
+
+  // =============================
+  // LOADING UI
+  // =============================
+  if (loading) {
+    return (
+      <div className="pt-40 text-center text-xl min-h-screen bg-[#F2F0EF]">
+        Loading Cart...
+      </div>
     );
-  };
+  }
 
-  const decreaseQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.qty > 1
-          ? { ...item, qty: item.qty - 1 }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
-  );
-
+  // =============================
+  // UI
+  // =============================
   return (
-    <div className="min-h-screen bg-[#F2F0EF] text-[#1C2120] pt-32">
-      {/* HERO */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <p
-          className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-5"
-          style={{ fontFamily: "Cardo, serif" }}
-        >
-          Shopping Cart
+    <div className="bg-[#F2F0EF] min-h-screen pt-32 px-6">
+
+      <h1 className="text-4xl mb-12">
+        Your Bag
+      </h1>
+
+      {items.length === 0 ? (
+        <p className="text-lg text-gray-600">
+          Your cart is empty
         </p>
+      ) : (
+        <>
+          {/* ITEMS */}
+          <div className="space-y-10">
 
-        <h1
-          className="text-5xl md:text-7xl leading-tight"
-          style={{ fontFamily: "TanAngleton, serif" }}
-        >
-          Your Selected
-          <br />
-          Pieces
-        </h1>
-
-        <p
-          className="mt-8 max-w-2xl text-[#1C2120]/70 leading-8"
-          style={{ fontFamily: "Cardo, serif" }}
-        >
-          Review handcrafted creations reserved for you.
-        </p>
-      </section>
-
-      {/* MAIN */}
-      <section className="max-w-7xl mx-auto px-6 pb-24 grid lg:grid-cols-[1.7fr_1fr] gap-14">
-        {/* LEFT ITEMS */}
-        <div className="space-y-6">
-          {cartItems.length === 0 ? (
-            <div className="border border-black/10 p-12 text-center">
-              <h2
-                className="text-3xl mb-4"
-                style={{ fontFamily: "TanAngleton, serif" }}
-              >
-                Cart is Empty
-              </h2>
-
-              <p
-                className="text-[#1C2120]/70"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Add timeless pieces to continue.
-              </p>
-            </div>
-          ) : (
-            cartItems.map((item) => (
+            {items.map((item) => (
               <div
-                key={item.id}
-                className="border border-black/10 bg-white p-6 grid md:grid-cols-[180px_1fr] gap-6"
+                key={item.variantId}
+                className="flex gap-8 border-b border-black/10 pb-10"
               >
+
+                {/* IMAGE */}
                 <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-52 object-cover"
+                  src={getImage(item)}
+                  alt="product"
+                  className="w-40 h-40 object-cover bg-white border"
                 />
 
-                <div className="flex flex-col justify-between">
+                {/* DETAILS */}
+                <div className="flex-1 flex flex-col justify-between">
+
                   <div>
-                    <h3
-                      className="text-3xl mb-3"
-                      style={{ fontFamily: "TanAngleton, serif" }}
-                    >
-                      {item.name}
-                    </h3>
+                    <h2 className="text-lg">
+                      {item.product?.name || item.productName}
+                    </h2>
 
-                    <p
-                      className="text-sm text-[#1C2120]/70 leading-7"
-                      style={{ fontFamily: "Cardo, serif" }}
-                    >
-                      Handcrafted luxury shawl finished with refined detailing.
-                    </p>
-
-                    <p
-                      className="mt-4 text-lg"
-                      style={{ fontFamily: "Cardo, serif" }}
-                    >
-                      ₹ {item.price.toLocaleString()}
+                    <p className="mt-2 text-sm text-gray-600">
+                      ₹{item.price}
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-5 mt-6">
-                    {/* Qty */}
-                    <div className="flex items-center border border-black/10">
-                      <button
-                        onClick={() => decreaseQty(item.id)}
-                        className="px-4 py-3 hover:bg-[#1C2120] hover:text-[#F2F0EF] transition"
-                      >
-                        <Minus size={16} />
-                      </button>
+                  {/* QTY CONTROLS */}
+                  <div className="flex items-center gap-4 mt-6">
 
-                      <span
-                        className="px-5"
-                        style={{ fontFamily: "Cardo, serif" }}
-                      >
-                        {item.qty}
-                      </span>
-
-                      <button
-                        onClick={() => increaseQty(item.id)}
-                        className="px-4 py-3 hover:bg-[#1C2120] hover:text-[#F2F0EF] transition"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-
-                    {/* Remove */}
                     <button
-                      onClick={() => removeItem(item.id)}
-                      className="flex items-center gap-2 text-sm uppercase tracking-[0.25em] hover:opacity-70 transition"
-                      style={{ fontFamily: "Cardo, serif" }}
+                      onClick={() => decreaseQty(item)}
+                      className="w-8 h-8 border hover:bg-black hover:text-white"
                     >
-                      <Trash2 size={16} />
-                      Remove
+                      −
                     </button>
+
+                    <span className="w-6 text-center">
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      onClick={() => increaseQty(item)}
+                      className="w-8 h-8 border hover:bg-black hover:text-white"
+                    >
+                      +
+                    </button>
+
                   </div>
+
+                  {/* REMOVE */}
+                  <button
+                    onClick={() => handleRemove(item.variantId)}
+                    className="mt-6 text-xs text-gray-500 hover:text-black"
+                  >
+                    Remove
+                  </button>
+
                 </div>
+
               </div>
-            ))
-          )}
-        </div>
+            ))}
 
-        {/* RIGHT SUMMARY */}
-        <div className="border border-black/10 bg-white p-8 h-fit sticky top-32">
-          <p
-            className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-5"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
-            Order Summary
-          </p>
-
-          <h2
-            className="text-4xl mb-8"
-            style={{ fontFamily: "TanAngleton, serif" }}
-          >
-            Final Review
-          </h2>
-
-          <div
-            className="space-y-5 text-sm border-b border-black/10 pb-8"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>₹ {subtotal.toLocaleString()}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>Complimentary</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span>Taxes</span>
-              <span>Included</span>
-            </div>
           </div>
 
-          <div
-            className="flex justify-between pt-8 text-lg"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
-            <span>Total</span>
-            <span>₹ {subtotal.toLocaleString()}</span>
-          </div>
+          {/* TOTAL SECTION */}
+          <div className="mt-16 flex justify-between items-center border-t pt-10">
 
-          <button
-            className="w-full mt-10 px-8 py-4 bg-[#1C2120] text-[#F2F0EF] text-xs uppercase tracking-[0.30em] hover:opacity-90 transition flex items-center justify-center gap-3"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
-            Proceed Checkout <ArrowRight size={16} />
-          </button>
-        </div>
-      </section>
+            <div>
+              <p className="text-sm text-gray-600">Total</p>
+              <h2 className="text-2xl">₹{total}</h2>
+            </div>
+
+            <div className="flex gap-4">
+
+              <button
+                onClick={handleClear}
+                className="px-6 py-3 border hover:bg-black hover:text-white"
+              >
+                Clear
+              </button>
+
+              <button
+                onClick={() => navigate("/orders")}
+                className="px-8 py-3 bg-black text-white hover:opacity-80"
+              >
+                Checkout
+              </button>
+
+            </div>
+
+          </div>
+        </>
+      )}
+
     </div>
   );
-};
+}
 
 export default CartPage;
