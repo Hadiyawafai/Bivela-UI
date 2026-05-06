@@ -25,7 +25,7 @@ export default function ReviewForm({
     }
 
     if (form.rating === 0) {
-      comsole.log("Please select rating");
+      console.log("Please select rating");
       return;
     }
 

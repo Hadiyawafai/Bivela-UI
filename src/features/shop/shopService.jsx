@@ -69,7 +69,7 @@ export const updateProduct = async (id, productData, images = []) => {
 
   return await api.put(`/products/${id}`, formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
+    
       "ngrok-skip-browser-warning": "true",
     },
   });

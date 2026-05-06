@@ -58,26 +58,17 @@ function Home() {
 
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <div className="text-center px-6 max-w-5xl">
-            <p
-              className="text-[#F2F0EF] text-xs md:text-sm uppercase tracking-[0.45em] mb-6 mt-5"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
+            <p className="text-[#F2F0EF] text-xs md:text-sm uppercase tracking-[0.45em] mb-6 mt-5">
               House Of Bivela
             </p>
 
-            <h1
-              className="text-[#F2F0EF] text-4xl md:text-7xl leading-tight"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
+            <h1 className="text-[#F2F0EF] text-4xl md:text-7xl leading-tight">
               Crafted In Legacy
               <br />
               Worn In Elegance
             </h1>
 
-            <p
-              className="mt-8 text-[#F2F0EF]/85 max-w-2xl mx-auto leading-8"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
+            <p className="mt-8 text-[#F2F0EF]/85 max-w-2xl mx-auto leading-8">
               A modern luxury house rooted in Kashmiri heritage,
               creating shawls that become timeless heirlooms.
             </p>
@@ -85,7 +76,6 @@ function Home() {
             <NavLink
               to="/shop"
               className="inline-block mt-10 border border-[#F2F0EF] px-8 py-3 text-[#F2F0EF] text-xs uppercase tracking-[0.35em] hover:bg-[#F2F0EF] hover:text-[#1C2120] transition duration-500"
-              style={{ fontFamily: "Cardo, serif" }}
             >
               Discover Collection
             </NavLink>
@@ -98,17 +88,11 @@ function Home() {
         <div className="max-w-7xl mx-auto px-6 py-24">
           <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-14">
             <div>
-              <p
-                className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-3"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
+              <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-3">
                 Signature Collection
               </p>
 
-              <h2
-                className="text-4xl md:text-6xl"
-                style={{ fontFamily: "TanAngleton, serif" }}
-              >
+              <h2 className="text-4xl md:text-6xl">
                 Quiet Luxury
               </h2>
             </div>
@@ -116,7 +100,6 @@ function Home() {
             <NavLink
               to="/shop"
               className="text-xs uppercase tracking-[0.30em] border-b border-[#1C2120] pb-1 hover:opacity-60 transition w-fit"
-              style={{ fontFamily: "Cardo, serif" }}
             >
               View All Pieces
             </NavLink>
@@ -124,12 +107,19 @@ function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {products.map((item) => {
+
+              // ✅ FIX PRICE HERE
+              const price =
+                item.basePrice ??
+                item.variants?.[0]?.price ??
+                0;
+
+              // ✅ FIX IMAGE
               const image =
                 item.primaryImage ||
-                item.images?.find(
-                  (img) => img.isPrimary
-                )?.imageUrl ||
-                item.images?.[0]?.imageUrl;
+                item.images?.find((img) => img.isPrimary)?.imageUrl ||
+                item.images?.[0]?.imageUrl ||
+                "/placeholder.png";
 
               return (
                 <div
@@ -140,7 +130,8 @@ function Home() {
                     id={item.id}
                     image={image}
                     title={item.name}
-                    description={`₹${item.basePrice}`}
+                    price={price} // ✅ FIXED
+                    description={item.description}
                   />
                 </div>
               );
@@ -161,26 +152,17 @@ function Home() {
           </div>
 
           <div className="px-6 md:px-16 py-20">
-            <p
-              className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-4"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
+            <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-4">
               Heritage
             </p>
 
-            <h2
-              className="text-4xl md:text-6xl leading-tight"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
+            <h2 className="text-4xl md:text-6xl leading-tight">
               Woven By Hand.
               <br />
               Preserved By Time.
             </h2>
 
-            <p
-              className="mt-8 text-[#1C2120]/70 leading-8 max-w-lg"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
+            <p className="mt-8 text-[#1C2120]/70 leading-8 max-w-lg">
               Every Bivela piece carries the story of Kashmiri
               artisans, where generations transform rare fibers
               into refined works of art.
@@ -189,7 +171,6 @@ function Home() {
             <NavLink
               to="/heritage"
               className="inline-block mt-10 text-xs uppercase tracking-[0.30em] border-b border-[#1C2120] pb-1 hover:opacity-60 transition"
-              style={{ fontFamily: "Cardo, serif" }}
             >
               Explore Heritage
             </NavLink>
@@ -200,26 +181,17 @@ function Home() {
       {/* PRIVATE ATELIER */}
       <section className="border-t border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-28 text-center">
-          <p
-            className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-5"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
+          <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-5">
             Private Atelier
           </p>
 
-          <h2
-            className="text-4xl md:text-6xl leading-tight"
-            style={{ fontFamily: "TanAngleton, serif" }}
-          >
+          <h2 className="text-4xl md:text-6xl leading-tight">
             Design What
             <br />
             Does Not Yet Exist
           </h2>
 
-          <p
-            className="mt-8 max-w-2xl mx-auto text-[#1C2120]/70 leading-8"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
+          <p className="mt-8 max-w-2xl mx-auto text-[#1C2120]/70 leading-8">
             Personalize colors, patterns and finishing details
             through our bespoke shawl atelier.
           </p>
@@ -227,7 +199,6 @@ function Home() {
           <NavLink
             to="/atelier"
             className="inline-block mt-10 px-8 py-4 bg-[#1C2120] text-[#F2F0EF] text-xs uppercase tracking-[0.35em] hover:opacity-90 transition"
-            style={{ fontFamily: "Cardo, serif" }}
           >
             Enter Atelier
           </NavLink>
@@ -237,26 +208,17 @@ function Home() {
       {/* CARE */}
       <section className="border-t border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-24 text-center">
-          <p
-            className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-4"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
+          <p className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-4">
             Concierge Care
           </p>
 
-          <h2
-            className="text-4xl md:text-5xl"
-            style={{ fontFamily: "TanAngleton, serif" }}
-          >
+          <h2 className="text-4xl md:text-5xl">
             Luxury Continues
             <br />
             Beyond Purchase
           </h2>
 
-          <p
-            className="mt-8 max-w-2xl mx-auto text-[#1C2120]/70 leading-8"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
+          <p className="mt-8 max-w-2xl mx-auto text-[#1C2120]/70 leading-8">
             Cleaning, preservation and restoration services
             crafted to maintain the beauty of every heirloom.
           </p>
@@ -264,7 +226,6 @@ function Home() {
           <NavLink
             to="/care"
             className="inline-block mt-10 text-xs uppercase tracking-[0.30em] border-b border-[#1C2120] pb-1 hover:opacity-60 transition"
-            style={{ fontFamily: "Cardo, serif" }}
           >
             Explore Care
           </NavLink>

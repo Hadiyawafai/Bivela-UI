@@ -104,7 +104,7 @@ export default function AdminProducts() {
         ) : products.length === 0 ? (
           <p>No products found</p>
         ) : (
-          <div className="grid md:grid-cols-3 gap-8 pb-20">
+          <div className="grid md:grid-cols-4 gap-8 pb-20">
 
             {products.map((item) => {
 
@@ -140,7 +140,7 @@ export default function AdminProducts() {
                   </p>
 
                   <h2
-                    className="text-2xl mb-2"
+                    className="text-xl "
                     style={{ fontFamily: "TanAngleton, serif" }}
                   >
                     {item.name}

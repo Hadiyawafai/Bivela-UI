@@ -92,7 +92,7 @@ export default function SignIn({ setMode }) {
       const roles =
         res?.user?.roles || [];
 
-      alert("Login successful");
+      console.log("Login successful");
 
       // ===============================
       // ROLE BASED REDIRECT
