@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createCustomProduct } from "./atelierService";
 
 import one from "../../assets/one.jpeg";
 import two from "../../assets/two.jpeg";
@@ -10,300 +11,227 @@ const baseShawls = [
   { id: 3, name: "Limited Heritage", image: three },
 ];
 
+const sizes = ["Small", "Medium", "Large"];
 const colors = ["Ivory", "Sand", "Noir", "Rose", "Emerald"];
 const patterns = ["Minimal", "Paisley", "Floral", "Regal"];
 const embroidery = ["None", "Gold Thread", "Silver Thread", "Hand Kani"];
 
 function AtelierPage() {
   const [selectedShawl, setSelectedShawl] = useState(baseShawls[0]);
+  const [selectedSize, setSelectedSize] = useState(sizes[0]);
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [selectedPattern, setSelectedPattern] = useState(patterns[0]);
   const [selectedEmbroidery, setSelectedEmbroidery] = useState(embroidery[0]);
 
+  const [designText, setDesignText] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // ==================================================
+  // 🚀 FINAL SUBMIT (WORKING)
+  // ==================================================
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+
+      if (!token) {
+        alert("Please login first");
+        return;
+      }
+
+      if (!userId) {
+        alert("User not found. Please login again.");
+        return;
+      }
+
+      setLoading(true);
+
+      const formData = new FormData();
+
+      // ✅ OPTION 1 (MOST COMPATIBLE - USE THIS FIRST)
+      formData.append("userId", Number(userId));
+      formData.append("size", selectedSize);
+      formData.append("color", selectedColor);
+      formData.append(
+        "designDescription",
+        `${selectedShawl.name} | Pattern: ${selectedPattern} | Embroidery: ${selectedEmbroidery} | Notes: ${designText}`
+      );
+
+      // ✅ IMAGE
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      await createCustomProduct(formData);
+
+      alert("✨ Design submitted successfully!");
+
+      // RESET
+      setDesignText("");
+      setImageFile(null);
+
+    } catch (error) {
+      console.log(error);
+      alert(
+        error?.response?.data?.message ||
+        "Failed to submit design"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==================================================
   return (
     <div className="bg-[#F2F0EF] min-h-screen pt-32 text-[#1C2120]">
+
       {/* HERO */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <p
-          className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-5"
-          style={{ fontFamily: "Cardo, serif" }}
-        >
+      <section className="max-w-7xl mx-auto px-6 pb-16">
+        <p className="text-xs uppercase tracking-[0.4em] text-black/50 mb-4">
           Private Atelier
         </p>
 
-        <h1
-          className="text-5xl md:text-7xl leading-tight"
-          style={{ fontFamily: "TanAngleton, serif" }}
-        >
-          Design What
+        <h1 className="text-6xl md:text-7xl leading-tight">
+          Create Your
           <br />
-          Does Not Yet Exist
+          Signature Shawl
         </h1>
 
-        <p
-          className="mt-8 max-w-2xl text-[#1C2120]/70 leading-8"
-          style={{ fontFamily: "Cardo, serif" }}
-        >
-          Enter the Bivela atelier and personalize a shawl through colors,
-          patterns, and handcrafted finishing details.
+        <p className="mt-6 max-w-xl text-black/70">
+          Personalize every detail — from fabric to embroidery.
         </p>
       </section>
 
-      {/* MAIN GRID */}
-      <section className="max-w-7xl mx-auto px-6 pb-24 grid lg:grid-cols-2 gap-16 items-start">
-        {/* LEFT PREVIEW FIXED */}
-        <div className="lg:sticky lg:top-28 self-start h-fit">
-          <div className="relative overflow-hidden bg-[#E9E6E1] rounded-sm">
-            <img
-              src={selectedShawl.image}
-              alt={selectedShawl.name}
-              className="w-full h-[600px] object-cover transition duration-700 hover:scale-105"
-            />
+      {/* MAIN */}
+      <section className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 pb-24">
 
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+        {/* LEFT */}
+        <div className="sticky top-28">
+          <img
+            src={selectedShawl.image}
+            className="w-full h-[600px] object-cover"
+          />
 
-            {/* Bottom Tag */}
-            <div className="absolute bottom-0 left-0 w-full p-6">
-              <p
-                className="text-[#F2F0EF] text-xs uppercase tracking-[0.30em] mb-2"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Live Preview
-              </p>
-
-              <h3
-                className="text-[#F2F0EF] text-3xl"
-                style={{ fontFamily: "TanAngleton, serif" }}
-              >
-                {selectedShawl.name}
-              </h3>
-            </div>
-          </div>
-
-          {/* Preview Details */}
-          <div className="mt-8 border-t border-black/10 pt-8 grid grid-cols-2 gap-6 text-sm">
-            <div>
-              <p
-                className="text-xs uppercase tracking-[0.25em] text-[#1C2120]/50 mb-2"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Color
-              </p>
-              <p>{selectedColor}</p>
-            </div>
-
-            <div>
-              <p
-                className="text-xs uppercase tracking-[0.25em] text-[#1C2120]/50 mb-2"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Pattern
-              </p>
-              <p>{selectedPattern}</p>
-            </div>
-
-            <div>
-              <p
-                className="text-xs uppercase tracking-[0.25em] text-[#1C2120]/50 mb-2"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Embroidery
-              </p>
-              <p>{selectedEmbroidery}</p>
-            </div>
-
-            <div>
-              <p
-                className="text-xs uppercase tracking-[0.25em] text-[#1C2120]/50 mb-2"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Delivery
-              </p>
-              <p>4–6 Weeks</p>
-            </div>
+          <div className="mt-6 text-sm space-y-2">
+            <p><b>Size:</b> {selectedSize}</p>
+            <p><b>Color:</b> {selectedColor}</p>
+            <p><b>Pattern:</b> {selectedPattern}</p>
+            <p><b>Embroidery:</b> {selectedEmbroidery}</p>
           </div>
         </div>
 
-        {/* RIGHT CONTROLS */}
+        {/* RIGHT */}
         <div>
-          {/* Step 1 */}
-          <div className="pb-12 border-b border-black/10">
-            <p
-              className="text-xs uppercase tracking-[0.30em] text-[#1C2120]/55 mb-5"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
-              Step 1
-            </p>
 
-            <h2
-              className="text-3xl mb-8"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
-              Select Base Shawl
-            </h2>
-
-            <div className="grid sm:grid-cols-3 gap-5">
-              {baseShawls.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedShawl(item)}
-                  className={`border transition duration-300 ${
-                    selectedShawl.id === item.id
-                      ? "border-[#1C2120]"
-                      : "border-black/10"
-                  }`}
-                >
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-44 object-cover"
-                  />
-
-                  <div className="p-4 text-left">
-                    <p className="text-sm">{item.name}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Step 2 */}
-          <div className="py-12 border-b border-black/10">
-            <p
-              className="text-xs uppercase tracking-[0.30em] text-[#1C2120]/55 mb-5"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
-              Step 2
-            </p>
-
-            <h2
-              className="text-3xl mb-8"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
-              Choose Color
-            </h2>
-
-            <div className="flex flex-wrap gap-4">
-              {colors.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setSelectedColor(item)}
-                  className={`px-5 py-3 text-xs uppercase tracking-[0.25em] border transition ${
-                    selectedColor === item
-                      ? "bg-[#1C2120] text-[#F2F0EF] border-[#1C2120]"
-                      : "border-black/15 hover:bg-[#1C2120] hover:text-[#F2F0EF]"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Step 3 */}
-          <div className="py-12 border-b border-black/10">
-            <p
-              className="text-xs uppercase tracking-[0.30em] text-[#1C2120]/55 mb-5"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
-              Step 3
-            </p>
-
-            <h2
-              className="text-3xl mb-8"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
-              Select Pattern
-            </h2>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              {patterns.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setSelectedPattern(item)}
-                  className={`p-4 border text-left transition ${
-                    selectedPattern === item
-                      ? "border-[#1C2120]"
-                      : "border-black/10"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Step 4 */}
-          <div className="py-12">
-            <p
-              className="text-xs uppercase tracking-[0.30em] text-[#1C2120]/55 mb-5"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
-              Step 4
-            </p>
-
-            <h2
-              className="text-3xl mb-8"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
-              Finishing Embroidery
-            </h2>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              {embroidery.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setSelectedEmbroidery(item)}
-                  className={`p-4 border text-left transition ${
-                    selectedEmbroidery === item
-                      ? "border-[#1C2120]"
-                      : "border-black/10"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="mt-12 flex flex-wrap gap-4">
+          {/* SHAWL */}
+          <h2 className="text-2xl mb-4">Base Shawl</h2>
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            {baseShawls.map((item) => (
               <button
-                className="px-8 py-4 bg-[#1C2120] text-[#F2F0EF] text-xs uppercase tracking-[0.30em] hover:opacity-90 transition"
-                style={{ fontFamily: "Cardo, serif" }}
+                key={item.id}
+                onClick={() => setSelectedShawl(item)}
+                className={`border ${
+                  selectedShawl.id === item.id
+                    ? "border-black"
+                    : "border-black/10"
+                }`}
               >
-                Save Design
+                <img src={item.image} className="h-32 w-full object-cover" />
               </button>
-
-              <button
-                className="px-8 py-4 border border-[#1C2120] text-xs uppercase tracking-[0.30em] hover:bg-[#1C2120] hover:text-[#F2F0EF] transition"
-                style={{ fontFamily: "Cardo, serif" }}
-              >
-                Add To Cart
-              </button>
-            </div>
+            ))}
           </div>
-        </div>
-      </section>
 
-      {/* Footer Quote */}
-      <section className="border-t border-black/10">
-        <div className="max-w-7xl mx-auto px-6 py-24 text-center">
-          <p
-            className="text-xs uppercase tracking-[0.35em] text-[#1C2120]/55 mb-5"
-            style={{ fontFamily: "Cardo, serif" }}
-          >
-            Bivela Signature
-          </p>
+          {/* SIZE */}
+          <h2 className="text-2xl mb-4">Size</h2>
+          <div className="flex gap-3 mb-8">
+            {sizes.map((s) => (
+              <button
+                key={s}
+                onClick={() => setSelectedSize(s)}
+                className={`px-4 py-2 border ${
+                  selectedSize === s ? "bg-black text-white" : ""
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
 
-          <h2
-            className="text-4xl md:text-6xl leading-tight"
-            style={{ fontFamily: "TanAngleton, serif" }}
+          {/* COLOR */}
+          <h2 className="text-2xl mb-4">Color</h2>
+          <div className="flex gap-3 mb-8 flex-wrap">
+            {colors.map((c) => (
+              <button
+                key={c}
+                onClick={() => setSelectedColor(c)}
+                className={`px-4 py-2 border ${
+                  selectedColor === c ? "bg-black text-white" : ""
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          {/* PATTERN */}
+          <h2 className="text-2xl mb-4">Pattern</h2>
+          <div className="flex gap-3 mb-8 flex-wrap">
+            {patterns.map((p) => (
+              <button
+                key={p}
+                onClick={() => setSelectedPattern(p)}
+                className={`px-4 py-2 border ${
+                  selectedPattern === p ? "bg-black text-white" : ""
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          {/* EMBROIDERY */}
+          <h2 className="text-2xl mb-4">Embroidery</h2>
+          <div className="flex gap-3 mb-8 flex-wrap">
+            {embroidery.map((e) => (
+              <button
+                key={e}
+                onClick={() => setSelectedEmbroidery(e)}
+                className={`px-4 py-2 border ${
+                  selectedEmbroidery === e ? "bg-black text-white" : ""
+                }`}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+
+          {/* NOTES */}
+          <h2 className="text-2xl mb-4">Design Notes</h2>
+          <textarea
+            value={designText}
+            onChange={(e) => setDesignText(e.target.value)}
+            className="w-full border p-4 mb-8"
+            placeholder="Describe your design..."
+          />
+
+          {/* IMAGE */}
+          <h2 className="text-2xl mb-4">Upload Reference</h2>
+          <input
+            type="file"
+            className="mb-10"
+            onChange={(e) => setImageFile(e.target.files[0])}
+          />
+
+          {/* SUBMIT */}
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full bg-black text-white py-4 uppercase tracking-widest"
           >
-            Luxury Begins
-            <br />
-            With Personal Meaning
-          </h2>
+            {loading ? "Submitting..." : "Submit Design"}
+          </button>
+
         </div>
       </section>
     </div>
