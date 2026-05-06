@@ -56,7 +56,7 @@ function OrderPage() {
       }
 
       const options = {
-        key: "YOUR_RAZORPAY_KEY",
+        key: "rzp_test_SkA1CgvNfGJteu",
         amount: order.amount,
         currency: "INR",
         name: "Bivela House",

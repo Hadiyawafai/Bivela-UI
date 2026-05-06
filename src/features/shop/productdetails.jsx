@@ -127,7 +127,7 @@ function ProductDetails() {
 
       // 2️⃣ Razorpay options (backend should send these ideally)
       const options = {
-        key: "YOUR_RAZORPAY_KEY_ID", // replace this
+        key: "rzp_test_SkA1CgvNfGJteu", // replace this
         amount: order.amount || product.basePrice * 100,
         currency: "INR",
         name: product.name,

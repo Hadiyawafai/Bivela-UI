@@ -1,5 +1,5 @@
 // =======================================================
-// FINAL SHOP PAGE (PRICE + UI FIXED)
+// FINAL SHOP PAGE (PRICE + UI FIXED + 4 GRID FIX)
 // =======================================================
 
 import React, {
@@ -31,7 +31,6 @@ function ProductSliderCard({ item, images }) {
     return () => clearInterval(interval);
   }, [images]);
 
-  // ✅ PRICE FIX (IMPORTANT)
   const price =
     item.basePrice ??
     item.variants?.[0]?.price ??
@@ -39,7 +38,6 @@ function ProductSliderCard({ item, images }) {
 
   return (
     <div className="bg-white p-4 border border-black/8 hover:shadow-xl transition">
-
       <div className="relative">
         <ProductCard
           id={item.id}
@@ -49,7 +47,6 @@ function ProductSliderCard({ item, images }) {
           price={price}
         />
 
-        {/* DOTS */}
         {images.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
             {images.map((_, i) => (
@@ -83,9 +80,6 @@ function ShopPage() {
 
   const dropdownRef = useRef(null);
 
-  // =====================================
-  // CLOSE DROPDOWN
-  // =====================================
   useEffect(() => {
     const close = (e) => {
       if (
@@ -101,9 +95,6 @@ function ShopPage() {
       document.removeEventListener("mousedown", close);
   }, []);
 
-  // =====================================
-  // FETCH PRODUCTS
-  // =====================================
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -124,13 +115,9 @@ function ShopPage() {
     fetchProducts();
   }, []);
 
-  // =====================================
-  // FILTER + SEARCH + SORT
-  // =====================================
   useEffect(() => {
     let result = [...products];
 
-    // FILTER
     if (activeFilter !== "All") {
       result = result.filter(
         (item) =>
@@ -139,7 +126,6 @@ function ShopPage() {
       );
     }
 
-    // SEARCH
     if (search.trim()) {
       result = result.filter((item) =>
         item.name
@@ -148,7 +134,6 @@ function ShopPage() {
       );
     }
 
-    // SORT
     if (sortBy === "low-high") {
       result.sort(
         (a, b) =>
@@ -184,9 +169,6 @@ function ShopPage() {
     setFilteredProducts(result);
   }, [products, activeFilter, search, sortBy]);
 
-  // =====================================
-  // STATS
-  // =====================================
   const totalProducts = filteredProducts.length;
 
   const avgPrice = useMemo(() => {
@@ -206,7 +188,6 @@ function ShopPage() {
     return Math.round(total / filteredProducts.length);
   }, [filteredProducts]);
 
-  // =====================================
   return (
     <div className="bg-[#F2F0EF] min-h-screen pt-32">
 
@@ -230,7 +211,6 @@ function ShopPage() {
       <section className="max-w-7xl mx-auto px-6 pb-10">
         <div className="grid md:grid-cols-3 gap-4">
 
-          {/* SEARCH */}
           <input
             type="text"
             placeholder="Search Collection..."
@@ -241,7 +221,6 @@ function ShopPage() {
             className="border px-4 py-3 bg-white"
           />
 
-          {/* SORT */}
           <div ref={dropdownRef} className="relative">
             <button
               onClick={() => setOpen(!open)}
@@ -279,7 +258,6 @@ function ShopPage() {
             )}
           </div>
 
-          {/* STATS */}
           <div className="border px-4 py-3 bg-white flex justify-between">
             <span>{totalProducts} Items</span>
             <span>Avg ₹{avgPrice}</span>
@@ -307,7 +285,7 @@ function ShopPage() {
       </section>
 
       {/* PRODUCTS */}
-      <section className="max-w-7xl mx-auto px-6 pb-24 grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+      <section className="max-w-7xl mx-auto px-6 pb-24 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
 
         {loading ? (
           <p>Loading Products...</p>

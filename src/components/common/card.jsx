@@ -6,7 +6,7 @@ function ProductCard({
   image,
   title,
   description,
-  price, // ✅ NEW PROP
+  price,
 }) {
   const navigate = useNavigate();
 
@@ -18,41 +18,40 @@ function ProductCard({
 
   return (
     <div className="group cursor-pointer w-full">
-      <div className="bg-[#F2F0EF] border border-black/8 overflow-hidden transition duration-500 hover:shadow-xl">
+      <div className="bg-[#F2F0EF] border border-black/8 overflow-hidden transition duration-500 hover:shadow-lg">
 
         {/* IMAGE */}
         <div className="overflow-hidden">
           <img
             src={currentImage || "/placeholder.png"}
             alt={title}
-            className="w-full h-[270px] object-cover transition duration-700 group-hover:scale-105"
+            className="w-full h-[200px] object-cover transition duration-700 group-hover:scale-105"
           />
         </div>
 
         {/* CONTENT */}
-        <div className="px-5 py-4">
+        <div className="px-4 py-3">
 
-          <p className="text-[10px] uppercase tracking-[0.32em] text-[#1C2120]/45 mb-2">
+          <p className="text-[9px] uppercase tracking-[0.25em] text-[#1C2120]/45 mb-1">
             Bivela Edition
           </p>
 
-          <h3 className="text-[24px] text-[#1C2120] mb-2">
+          <h3 className="text-sm font-medium text-[#1C2120] mb-1 leading-tight">
             {title}
           </h3>
 
-          {/* ✅ PRICE FIX */}
-          <p className="text-lg font-semibold text-[#1C2120] mb-3">
+          <p className="text-sm font-semibold text-[#1C2120] mb-2">
             ₹{price ?? 0}
           </p>
 
           <button
             onClick={() => navigate(`/product/${id}`)}
-            className="text-[11px] uppercase tracking-[0.26em] border-b border-[#1C2120] pb-1 hover:opacity-60 transition mb-4"
+            className="text-[10px] uppercase tracking-[0.2em] border-b border-[#1C2120] pb-1 hover:opacity-60 transition mb-2"
           >
-            Own This Piece
+            View Product
           </button>
 
-          <p className="text-sm text-[#1C2120]/70 min-h-[56px]">
+          <p className="text-xs text-[#1C2120]/70 line-clamp-2">
             {description}
           </p>
 
