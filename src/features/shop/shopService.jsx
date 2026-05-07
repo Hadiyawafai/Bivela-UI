@@ -74,3 +74,53 @@ export const updateProduct = async (id, productData, images = []) => {
     },
   });
 };
+
+
+// =======================================================
+// ADD TO WISHLIST
+// =======================================================
+
+export const addToWishlist = async (
+  variantId
+) => {
+  return await api.post(
+    `/wishlist/add/${variantId}`,
+    {},
+    {
+      headers: {
+        "ngrok-skip-browser-warning":
+          "true",
+      },
+    }
+  );
+};
+
+// =======================================================
+// GET WISHLIST
+// =======================================================
+
+export const getWishlist = async () => {
+  return await api.get("/wishlist", {
+    headers: {
+      "ngrok-skip-browser-warning":
+        "true",
+    },
+  });
+};
+
+// =======================================================
+// REMOVE FROM WISHLIST
+// =======================================================
+
+export const removeFromWishlist =
+  async (variantId) => {
+    return await api.delete(
+      `/wishlist/remove/${variantId}`,
+      {
+        headers: {
+          "ngrok-skip-browser-warning":
+            "true",
+        },
+      }
+    );
+  };

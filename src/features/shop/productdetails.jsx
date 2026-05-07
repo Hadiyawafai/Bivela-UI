@@ -1,5 +1,5 @@
 // =======================================================
-// FINAL PRODUCT DETAILS (CART + BUY NOW ADDED)
+// ✅ FINAL PRODUCT DETAILS WITH WISHLIST
 // =======================================================
 
 import React, { useEffect, useState } from "react";
@@ -9,10 +9,20 @@ import {
   NavLink,
 } from "react-router-dom";
 
+import {
+  Heart,
+  ShoppingBag,
+} from "lucide-react";
+
 import { getProductById } from "../shop/shopService";
 import { addToCart } from "../cart/cartService";
 
-// 🔥 ADD THIS IMPORT (ORDER SERVICE)
+import {
+  addToWishlist,
+  removeFromWishlist,
+} from "../shop/shopService";
+
+// 🔥 ORDER SERVICE
 import { initiateOrder } from "../orders/orderService";
 
 function ProductDetails() {
@@ -21,23 +31,38 @@ function ProductDetails() {
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState("");
-  const [selectedVariant, setSelectedVariant] = useState(null);
 
-  // =============================
+  const [selectedImage, setSelectedImage] =
+    useState("");
+
+  const [selectedVariant, setSelectedVariant] =
+    useState(null);
+
+  // ✅ WISHLIST STATE
+  const [wishlistLoading, setWishlistLoading] =
+    useState(false);
+
+  const [isWishlisted, setIsWishlisted] =
+    useState(false);
+
+  // =====================================================
   // FETCH PRODUCT
-  // =============================
+  // =====================================================
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
 
         const data = await getProductById(id);
+
         setProduct(data);
 
         const first =
           data.primaryImage ||
-          data.images?.find((img) => img.isPrimary)?.imageUrl ||
+          data.images?.find(
+            (img) => img.isPrimary
+          )?.imageUrl ||
           data.images?.[0]?.imageUrl ||
           "";
 
@@ -46,6 +71,7 @@ function ProductDetails() {
         if (data.variants?.length > 0) {
           setSelectedVariant(data.variants[0]);
         }
+
       } catch (error) {
         console.log("PRODUCT ERROR:", error);
       } finally {
@@ -56,17 +82,25 @@ function ProductDetails() {
     fetchProduct();
   }, [id]);
 
-  // =============================
+  // =====================================================
+  // GET CURRENT VARIANT
+  // =====================================================
+
   const getVariant = () => {
-    return selectedVariant || product?.variants?.[0];
+    return (
+      selectedVariant ||
+      product?.variants?.[0]
+    );
   };
 
-  // =============================
-  // ADD TO BAG (EXISTING)
-  // =============================
+  // =====================================================
+  // ADD TO CART
+  // =====================================================
+
   const handleAddToBag = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token");
 
       if (!token) {
         alert("Please login first");
@@ -86,21 +120,32 @@ function ProductDetails() {
         quantity: 1,
       });
 
-      alert("Added to Bag 🛒");
+      alert("Added To Bag 🛒");
+
       navigate("/cart");
 
     } catch (error) {
-      console.log("CART ERROR:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Failed to add to cart");
+      console.log(
+        "CART ERROR:",
+        error.response?.data ||
+          error.message
+      );
+
+      alert(
+        error.response?.data?.message ||
+          "Failed to add to cart"
+      );
     }
   };
 
-  // =======================================================
-  // 💳 BUY NOW (NEW LOGIC ADDED)
-  // =======================================================
-  const handleBuyNow = async () => {
+  // =====================================================
+  // ✅ WISHLIST
+  // =====================================================
+
+  const handleWishlist = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token");
 
       if (!token) {
         alert("Please login first");
@@ -115,46 +160,141 @@ function ProductDetails() {
         return;
       }
 
-      // 1️⃣ Create Order from SINGLE ITEM
-      const orderRes = await initiateOrder([
-        {
-          variantId: variant.id,
-          quantity: 1,
-        },
-      ]);
+      setWishlistLoading(true);
+
+      // ✅ REMOVE
+      if (isWishlisted) {
+        await removeFromWishlist(
+          variant.id
+        );
+
+        setIsWishlisted(false);
+
+        alert(
+          "Removed from Wishlist 💔"
+        );
+      }
+
+      // ✅ ADD
+      else {
+        await addToWishlist(
+          variant.id
+        );
+
+        setIsWishlisted(true);
+
+        alert("Added to Wishlist ❤️");
+      }
+
+    } catch (error) {
+      console.log(
+        "WISHLIST ERROR:",
+        error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          "Wishlist action failed"
+      );
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  // =====================================================
+  // BUY NOW
+  // =====================================================
+
+  const handleBuyNow = async () => {
+    try {
+      const token =
+        localStorage.getItem("token");
+
+      if (!token) {
+        alert("Please login first");
+
+        navigate("/auth");
+
+        return;
+      }
+
+      const variant = getVariant();
+
+      if (!variant?.id) {
+        alert("Please select a variant");
+
+        return;
+      }
+
+      // ✅ CREATE ORDER
+      const orderRes =
+        await initiateOrder([
+          {
+            variantId: variant.id,
+            quantity: 1,
+          },
+        ]);
 
       const order = orderRes;
 
-      // 2️⃣ Razorpay options (backend should send these ideally)
+      // ✅ RAZORPAY
       const options = {
-        key: "rzp_test_SkA1CgvNfGJteu", // replace this
-        amount: order.amount || product.basePrice * 100,
+        key: "rzp_test_SkA1CgvNfGJteu",
+
+        amount:
+          order.amount ||
+          product.basePrice * 100,
+
         currency: "INR",
+
         name: product.name,
-        description: "Product Purchase",
-        order_id: order.razorpayOrderId, // MUST come from backend
 
-        handler: async function (response) {
+        description:
+          "Product Purchase",
+
+        order_id:
+          order.razorpayOrderId,
+
+        handler: async function (
+          response
+        ) {
           try {
-            // verify payment
-            await fetch("/api/orders/verify", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-              }),
-            });
+            await fetch(
+              "/api/orders/verify",
+              {
+                method: "POST",
 
-            alert("Payment Successful 🎉");
+                headers: {
+                  "Content-Type":
+                    "application/json",
+
+                  Authorization: `Bearer ${token}`,
+                },
+
+                body: JSON.stringify({
+                  razorpayOrderId:
+                    response.razorpay_order_id,
+
+                  razorpayPaymentId:
+                    response.razorpay_payment_id,
+
+                  razorpaySignature:
+                    response.razorpay_signature,
+                }),
+              }
+            );
+
+            alert(
+              "Payment Successful 🎉"
+            );
+
             navigate("/orders");
 
           } catch (err) {
-            console.log("VERIFY ERROR:", err);
+            console.log(
+              "VERIFY ERROR:",
+              err
+            );
           }
         },
 
@@ -163,17 +303,27 @@ function ProductDetails() {
         },
       };
 
-      // 3️⃣ OPEN RAZORPAY
-      const rzp = new window.Razorpay(options);
+      const rzp =
+        new window.Razorpay(options);
+
       rzp.open();
 
     } catch (error) {
-      console.log("BUY NOW ERROR:", error);
-      alert("Failed to process Buy Now");
+      console.log(
+        "BUY NOW ERROR:",
+        error
+      );
+
+      alert(
+        "Failed to process Buy Now"
+      );
     }
   };
 
-  // =============================
+  // =====================================================
+  // LOADING
+  // =====================================================
+
   if (loading) {
     return (
       <div className="pt-40 text-center text-xl min-h-screen bg-[#F2F0EF]">
@@ -181,6 +331,8 @@ function ProductDetails() {
       </div>
     );
   }
+
+  // =====================================================
 
   if (!product) {
     return (
@@ -190,8 +342,11 @@ function ProductDetails() {
     );
   }
 
+  // =====================================================
+
   const price =
-    selectedVariant?.price || product.basePrice;
+    selectedVariant?.price ||
+    product.basePrice;
 
   const stock =
     selectedVariant?.stock ?? 0;
@@ -199,9 +354,17 @@ function ProductDetails() {
   const images =
     product.images?.length > 0
       ? product.images
-      : [{ imageUrl: product.primaryImage }];
+      : [
+          {
+            imageUrl:
+              product.primaryImage,
+          },
+        ];
 
-  // =============================
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <div className="bg-[#F2F0EF] text-[#1C2120] min-h-screen pt-32">
 
@@ -220,7 +383,7 @@ function ProductDetails() {
 
         {/* LEFT */}
         <div>
-          <div className="border border-[#1C2120]/10">
+          <div className="border border-[#1C2120]/10 bg-white">
             <img
               src={selectedImage}
               alt={product.name}
@@ -232,16 +395,21 @@ function ProductDetails() {
             {images.map((img, i) => (
               <button
                 key={i}
-                onClick={() => setSelectedImage(img.imageUrl)}
-                className={`border ${
-                  selectedImage === img.imageUrl
+                onClick={() =>
+                  setSelectedImage(
+                    img.imageUrl
+                  )
+                }
+                className={`border overflow-hidden ${
+                  selectedImage ===
+                  img.imageUrl
                     ? "border-black"
                     : "border-black/10"
                 }`}
               >
                 <img
                   src={img.imageUrl}
-                  className="w-full h-24 object-cover"
+                  className="w-full h-24 object-cover hover:scale-105 transition"
                 />
               </button>
             ))}
@@ -251,68 +419,123 @@ function ProductDetails() {
         {/* RIGHT */}
         <div>
 
-          <h1 className="text-5xl">{product.name}</h1>
+          <h1 className="text-5xl">
+            {product.name}
+          </h1>
 
-          <p className="mt-5 text-3xl">₹{price}</p>
+          <p className="mt-5 text-3xl">
+            ₹{price}
+          </p>
 
           <p className="mt-3 text-sm text-[#1C2120]/70">
-            ★ {product.averageRating || 0} / 5 ·{" "}
-            {product.totalReviews || 0} Reviews
+            ★{" "}
+            {product.averageRating || 0} /
+            5 ·{" "}
+            {product.totalReviews || 0}{" "}
+            Reviews
           </p>
 
           <div className="mt-8 text-[#1C2120]/75 leading-8">
             {product.description}
           </div>
 
-          <div className="mt-10 text-sm">
-            <p><strong>Category:</strong> {product.categoryName}</p>
+          <div className="mt-10 text-sm space-y-2">
             <p>
-              <strong>Availability:</strong>{" "}
-              {stock > 0 ? "In Stock" : "Out Of Stock"}
+              <strong>Category:</strong>{" "}
+              {product.categoryName}
+            </p>
+
+            <p>
+              <strong>
+                Availability:
+              </strong>{" "}
+              {stock > 0
+                ? "In Stock"
+                : "Out Of Stock"}
             </p>
           </div>
 
           {/* VARIANTS */}
-          {product.variants?.length > 0 && (
+          {product.variants?.length >
+            0 && (
             <div className="mt-10">
-              <p className="text-xs uppercase mb-4">
+              <p className="text-xs uppercase mb-4 tracking-widest">
                 Select Variant
               </p>
 
               <div className="flex gap-3 flex-wrap">
-                {product.variants.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setSelectedVariant(item)}
-                    className={`px-5 py-3 border ${
-                      selectedVariant?.id === item.id
-                        ? "bg-[#1C2120] text-white"
-                        : ""
-                    }`}
-                  >
-                    {item.color} / {item.size}
-                  </button>
-                ))}
+                {product.variants.map(
+                  (item) => (
+                    <button
+                      key={item.id}
+                      onClick={() =>
+                        setSelectedVariant(
+                          item
+                        )
+                      }
+                      className={`px-5 py-3 border transition ${
+                        selectedVariant?.id ===
+                        item.id
+                          ? "bg-[#1C2120] text-white"
+                          : "bg-white"
+                      }`}
+                    >
+                      {item.color} /{" "}
+                      {item.size}
+                    </button>
+                  )
+                )}
               </div>
             </div>
           )}
 
           {/* BUTTONS */}
-          <div className="flex gap-4 mt-10">
+          <div className="flex flex-wrap gap-4 mt-10">
 
+            {/* CART */}
             <button
               onClick={handleAddToBag}
-              className="px-8 py-4 bg-[#1C2120] text-white text-xs uppercase"
+              className="px-8 py-4 bg-[#1C2120] text-white text-xs uppercase tracking-widest flex items-center gap-3"
             >
+              <ShoppingBag size={16} />
+
               Add To Bag
             </button>
 
-            {/* 🔥 NEW BUY NOW BUTTON */}
+            {/* BUY NOW */}
             <button
               onClick={handleBuyNow}
-              className="px-8 py-4 border border-[#1C2120] text-xs uppercase"
+              className="px-8 py-4 border border-[#1C2120] text-xs uppercase tracking-widest hover:bg-[#1C2120] hover:text-white transition"
             >
               Buy Now
+            </button>
+
+            {/* WISHLIST */}
+            <button
+              onClick={handleWishlist}
+              disabled={
+                wishlistLoading
+              }
+              className={`px-8 py-4 border text-xs uppercase tracking-widest flex items-center gap-3 transition ${
+                isWishlisted
+                  ? "bg-red-500 text-white border-red-500"
+                  : "border-[#1C2120] hover:bg-[#1C2120] hover:text-white"
+              }`}
+            >
+              <Heart
+                size={16}
+                fill={
+                  isWishlisted
+                    ? "white"
+                    : "none"
+                }
+              />
+
+              {wishlistLoading
+                ? "Loading..."
+                : isWishlisted
+                ? "Wishlisted"
+                : "Add Wishlist"}
             </button>
 
           </div>

@@ -22,10 +22,13 @@ import HeritagePage from "./features/heritage/heritagePage";
 import SearchPage from "./features/search/searchPage";
 import CarePage from "./features/care/carePage";
 
+
 // ADMIN
 import AdminProducts from "./features/shop/adminProducts";
 import AdminDashboard from "./features/admin/adminDashboard";
 import CategoryPage from "./features/category/categoryPage";
+
+import WishlistPage from "./features/shop/wishlistPage";
 
 function App() {
   return (
@@ -41,6 +44,7 @@ function App() {
           {/* ===== PUBLIC ROUTES ===== */}
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<AuthPage />} />
+           {/* <Route path="/admin" element={<AdminDashboard />} /> */}
 
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
@@ -49,7 +53,7 @@ function App() {
 
           {/* ===== ORDER ROUTES (IMPORTANT) ===== */}
           <Route path="/orders" element={<OrderPage />} />
-          <Route path="/my-orders" element={<OrderPage />} />
+          
 
           {/* ===== OTHER PAGES ===== */}
           <Route path="/heritage" element={<HeritagePage />} />
@@ -59,9 +63,9 @@ function App() {
 
           {/* ===== ADMIN ===== */}
           <Route path="/admin/products" element={<AdminProducts />} />
-          <Route path="/admin/orders" element={<OrderPage />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/category" element={<CategoryPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
 
         </Routes>
       </main>
