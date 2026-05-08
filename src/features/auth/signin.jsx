@@ -100,7 +100,7 @@ export default function SignIn({ setMode }) {
       if (
         roles.includes("ROLE_ADMIN")
       ) {
-        navigate("/admin/dashboard");
+        navigate("/admin");
       } else {
         navigate("/");
       }

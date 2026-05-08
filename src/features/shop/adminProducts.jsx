@@ -1,9 +1,16 @@
 // =======================================================
 // src/features/shop/adminProducts.jsx
-// FINAL WORKING VERSION (PRICE FIXED)
+// FINAL MINIMAL LUXURY VERSION
 // =======================================================
 
 import React, { useEffect, useState } from "react";
+
+import {
+  Pencil,
+  Trash2,
+  Plus,
+} from "lucide-react";
+
 import {
   getAllProducts,
   deleteProduct,
@@ -18,14 +25,12 @@ export default function AdminProducts() {
   const [editData, setEditData] = useState(null);
 
   // =============================
-  // FETCH PRODUCTS
+  // FETCH
   // =============================
   const fetchProducts = async () => {
     try {
       setLoading(true);
-
       const data = await getAllProducts();
-
       setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.log("FETCH ERROR:", error);
@@ -51,11 +56,9 @@ export default function AdminProducts() {
       fetchProducts();
     } catch (error) {
       console.log("DELETE ERROR:", error);
-      alert("Delete failed");
     }
   };
 
-  // =============================
   const handleEdit = (product) => {
     setEditData(product);
     setOpenForm(true);
@@ -67,58 +70,57 @@ export default function AdminProducts() {
   };
 
   // =============================
+  // UI
+  // =============================
   return (
     <div className="min-h-screen bg-[#F2F0EF] pt-28 px-6">
       <div className="max-w-7xl mx-auto">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-10">
+
           <div>
-            <p
-              className="text-xs uppercase tracking-[0.35em] text-black/50 mb-3"
-              style={{ fontFamily: "Cardo, serif" }}
-            >
+            <p className="text-[10px] uppercase tracking-[0.35em] text-black/50 mb-2"
+              style={{ fontFamily: "Cardo, serif" }}>
               Bivela Admin
             </p>
 
-            <h1
-              className="text-5xl text-black"
-              style={{ fontFamily: "TanAngleton, serif" }}
-            >
+            <h1 className="text-4xl text-black"
+              style={{ fontFamily: "TanAngleton, serif" }}>
               Products
             </h1>
           </div>
 
           <button
             onClick={handleAdd}
-            className="bg-black text-white px-7 py-3 text-xs uppercase tracking-[0.30em] hover:opacity-90 transition"
+            className="bg-[#1C2120] text-[#F2F0EF] px-6 py-2 text-[11px] uppercase tracking-[0.25em] rounded-xl flex items-center gap-2 hover:opacity-90 transition"
             style={{ fontFamily: "Cardo, serif" }}
           >
-            Add Product
+            <Plus size={14} />
+            Add
           </button>
         </div>
 
-        {/* PRODUCTS */}
+        {/* LOADING */}
         {loading ? (
-          <p>Loading...</p>
+          <div className="h-[40vh] flex items-center justify-center">
+            <p className="text-sm text-black/60">Loading...</p>
+          </div>
         ) : products.length === 0 ? (
-          <p>No products found</p>
+          <div className="h-[40vh] flex items-center justify-center">
+            <p className="text-sm text-black/60">No products found</p>
+          </div>
         ) : (
-          <div className="grid md:grid-cols-4 gap-8 pb-20">
+
+          <div className="grid md:grid-cols-4 gap-6 pb-20">
 
             {products.map((item) => {
 
-              // =============================
-              // ✅ FIXED PRICE LOGIC
-              // =============================
               const price =
                 item.basePrice ??
                 item.variants?.[0]?.price ??
                 0;
 
-              // =============================
-              // ✅ SAFE IMAGE
-              // =============================
               const image =
                 item.primaryImage ||
                 item.images?.[0]?.imageUrl ||
@@ -127,52 +129,63 @@ export default function AdminProducts() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white p-5 border border-black/10 shadow-sm"
+                  className="bg-white border border-black/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition"
                 >
-                  <img
-                    src={image}
-                    alt={item.name}
-                    className="w-full h-64 object-cover mb-5"
-                  />
 
-                  <p className="text-xs uppercase tracking-[0.25em] text-black/50 mb-2">
-                    {item.categoryName || "No Category"}
-                  </p>
+                  {/* IMAGE */}
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={image}
+                      alt={item.name}
+                      className="w-full h-full object-cover hover:scale-105 transition duration-500"
+                    />
+                  </div>
 
-                  <h2
-                    className="text-xl "
-                    style={{ fontFamily: "TanAngleton, serif" }}
-                  >
-                    {item.name}
-                  </h2>
+                  {/* CONTENT */}
+                  <div className="p-4">
 
-                  <p className="text-sm text-black/65 line-clamp-2 mb-4">
-                    {item.description || "No description"}
-                  </p>
-
-                  {/* =============================
-                      ✅ PRICE FIXED HERE
-                  ============================= */}
-                  <div className="flex justify-between items-center">
-                    <p className="font-semibold text-lg">
-                      ₹{price}
+                    <p className="text-[9px] uppercase tracking-[0.25em] text-black/50 mb-1"
+                      style={{ fontFamily: "Cardo, serif" }}>
+                      {item.categoryName || "No Category"}
                     </p>
 
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="text-xs uppercase border border-black px-4 py-2 hover:bg-black hover:text-white transition"
-                      >
-                        Edit
-                      </button>
+                    <h2 className="text-base text-black mb-2"
+                      style={{ fontFamily: "TanAngleton, serif" }}>
+                      {item.name}
+                    </h2>
 
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-xs uppercase border border-red-500 text-red-500 px-4 py-2 hover:bg-red-500 hover:text-white transition"
-                      >
-                        Delete
-                      </button>
+                    <p className="text-[12px] text-black/60 line-clamp-2 mb-3">
+                      {item.description || "No description"}
+                    </p>
+
+                    {/* FOOTER */}
+                    <div className="flex justify-between items-center">
+
+                      <p className="text-sm font-semibold text-black">
+                        ₹{price}
+                      </p>
+
+                      {/* ACTIONS (inside card) */}
+                      <div className="flex gap-2">
+
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/20 hover:bg-black hover:text-white transition"
+                        >
+                          <Pencil size={14} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/20 text-red-500 hover:bg-red-500 hover:text-white transition"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+
+                      </div>
+
                     </div>
+
                   </div>
 
                 </div>
@@ -182,7 +195,7 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* FORM MODAL */}
+        {/* FORM */}
         {openForm && (
           <ProductForm
             editData={editData}
@@ -193,6 +206,7 @@ export default function AdminProducts() {
             }}
           />
         )}
+
       </div>
     </div>
   );
