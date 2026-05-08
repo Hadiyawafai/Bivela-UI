@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
   Routes,
   Route,
@@ -20,17 +19,11 @@ import {
 // =======================================================
 
 import DashboardHome from "../admin/pages/dashboardHome";
-
 import AdminProducts from "../shop/adminProducts";
-
 import OrdersPage from "../admin/pages/orderPage";
-
 import UsersPage from "../admin/pages/usersPage";
-
 import CustomRequestsPage from "../admin/pages/customRequestPage";
-
 import ServiceBookingsPage from "../admin/pages/serviceBookingPage";
-
 import CategoryPage from "../category/categoryPage";
 
 // =======================================================
@@ -40,23 +33,21 @@ import CategoryPage from "../category/categoryPage";
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [adminName, setAdminName] =
-    useState("Admin");
+  const [adminName, setAdminName] = useState("Admin");
 
   // =======================================================
   // AUTH CHECK
   // =======================================================
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
     if (!token) {
       navigate("/auth");
+      return;
     }
 
-    const username =
-      localStorage.getItem("username");
+    const username = localStorage.getItem("username");
 
     if (username) {
       setAdminName(username);
@@ -69,9 +60,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-
     localStorage.removeItem("role");
-
     localStorage.removeItem("username");
 
     navigate("/auth");
@@ -98,18 +87,12 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto grid md:grid-cols-[270px_1fr]">
 
-        {/* ======================================================= */}
         {/* SIDEBAR */}
-        {/* ======================================================= */}
-
         <aside className="border-r border-black/10 px-6 py-10 min-h-[85vh]">
 
-          {/* LOGO */}
           <h2
             className="text-4xl mb-2"
-            style={{
-              fontFamily: "TanAngleton, serif",
-            }}
+            style={{ fontFamily: "TanAngleton, serif" }}
           >
             BIVELA
           </h2>
@@ -118,74 +101,44 @@ export default function AdminDashboard() {
             Welcome, {adminName}
           </p>
 
-          {/* ======================================================= */}
-          {/* NAVIGATION */}
-          {/* ======================================================= */}
-
           <nav className="space-y-3 text-sm uppercase tracking-[0.2em]">
 
-            {/* DASHBOARD */}
-            <NavLink
-              to="/admin"
-              end
-              className={navStyle}
-            >
+            <NavLink to="/admin" end className={navStyle}>
               <LayoutDashboard size={18} />
               Dashboard
             </NavLink>
 
-            {/* PRODUCTS */}
-            <NavLink
-              to="/admin/products"
-              className={navStyle}
-            >
+            <NavLink to="/admin/products" className={navStyle}>
               <Package size={18} />
               Products
             </NavLink>
 
-            {/* ORDERS */}
-            <NavLink
-              to="/admin/orders"
-              className={navStyle}
-            >
+            <NavLink to="/admin/orders" className={navStyle}>
               <ShoppingBag size={18} />
               Orders
             </NavLink>
 
-            {/* CUSTOM REQUESTS */}
-            <NavLink
-              to="/admin/custom-requests"
-              className={navStyle}
-            >
+            <NavLink to="/admin/users" className={navStyle}>
+              <Users size={18} />
+              Users
+            </NavLink>
+
+            <NavLink to="/admin/custom-requests" className={navStyle}>
               <BrushCleaning size={18} />
               Custom Requests
             </NavLink>
 
-            {/* SERVICE BOOKINGS */}
-            <NavLink
-              to="/admin/service-bookings"
-              className={navStyle}
-            >
+            <NavLink to="/admin/service-bookings" className={navStyle}>
               <BrushCleaning size={18} />
               Service Bookings
             </NavLink>
- 
-           
-            {/* USERS */}
-            <NavLink
-              to="/admin/category"
-              className={navStyle}
-            >
-              <Users size={18} />
+
+            <NavLink to="/admin/category" className={navStyle}>
+              <Package size={18} />
               Category
             </NavLink>
-           
 
           </nav>
-
-          {/* ======================================================= */}
-          {/* LOGOUT */}
-          {/* ======================================================= */}
 
           <button
             onClick={handleLogout}
@@ -196,53 +149,19 @@ export default function AdminDashboard() {
 
         </aside>
 
-        {/* ======================================================= */}
         {/* CONTENT */}
-        {/* ======================================================= */}
-
         <section className="p-8 w-full">
 
           <Routes>
 
-            {/* DASHBOARD */}
-            <Route
-              index
-              element={<DashboardHome />}
-            />
+            <Route index element={<DashboardHome />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="custom-requests" element={<CustomRequestsPage />} />
+            <Route path="service-bookings" element={<ServiceBookingsPage />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="category" element={<CategoryPage />} />
 
-            {/* PRODUCTS */}
-            <Route
-              path="products"
-              element={<AdminProducts />}
-            />
-
-            {/* ORDERS */}
-            <Route
-              path="orders"
-              element={<OrdersPage />}
-            />
-
-            {/* CUSTOM REQUESTS */}
-            <Route
-              path="custom-requests"
-              element={<CustomRequestsPage />}
-            />
-
-            {/* SERVICE BOOKINGS */}
-            <Route
-              path="service-bookings"
-              element={<ServiceBookingsPage />}
-            />
-
-            {/* USERS */}
-            <Route
-              path="users"
-              element={<UsersPage />}
-            />
- <Route
-              path="category"
-              element={<CategoryPage />}
-            />
           </Routes>
 
         </section>
